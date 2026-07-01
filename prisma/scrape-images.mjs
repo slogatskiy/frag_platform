@@ -40,33 +40,45 @@ const missing = new Map(
   (
     await prisma.fragrance.findMany({
       where: { imageUrl: null },
-      select: { id: true, slug: true },
+      select: { id: true, slug: true, name: true },
     })
-  ).map((f) => [f.slug, f.id])
+  ).map((f) => [f.slug, f])
 );
 
 const work = [];
 for (const m of meta) {
-  const id = missing.get(m.slug);
-  if (id) work.push({ id, slug: m.slug, url: m.url });
+  const f = missing.get(m.slug);
+  if (f) work.push({ id: f.id, slug: m.slug, url: m.url, name: f.name });
   if (work.length >= LIMIT) break;
 }
-const urlBySlug = new Map(work.map((w) => [w.slug, w.url]));
 console.log(`Fetching images for ${work.length} fragrances (most popular first)…`);
 
-async function fetchImage(url) {
+const STOP = new Set(["the","de","du","la","le","of","for","and","eau","parfum","edp","edt","extrait"]);
+const norm = (s) => s.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, " ");
+
+// Фото валидно, только если имя файла содержит токен из названия аромата.
+function imageMatchesName(imageUrl, name) {
+  const file = norm(decodeURIComponent(imageUrl.split("/").pop().split("?")[0]));
+  const toks = norm(name).split(" ").filter((t) => t.length >= 4 && !STOP.has(t));
+  const check = toks.length ? toks : norm(name).split(" ").filter(Boolean);
+  return check.some((t) => file.includes(t));
+}
+
+async function fetchImage(url, name) {
   const res = await fetch(url, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(20000) });
   if (!res.ok) return null;
   const html = await res.text();
   const m = html.match(/<meta\s+property="og:image"\s+content="([^"]+)"/i);
-  return m ? m[1] : null;
+  if (!m) return null;
+  // отбрасываем чужой/случайный og:image (анти-бот отдаёт мусор)
+  return imageMatchesName(m[1], name) ? m[1] : null;
 }
 
 let ok = 0, fail = 0, done = 0;
 async function worker(items) {
   for (const t of items) {
     try {
-      const img = await fetchImage(urlBySlug.get(t.slug));
+      const img = await fetchImage(t.url, t.name);
       if (img) {
         await prisma.fragrance.update({ where: { id: t.id }, data: { imageUrl: img } });
         ok += 1;
