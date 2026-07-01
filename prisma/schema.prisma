@@ -70,6 +70,7 @@ model CollectionItem {
   fragrance    Fragrance @relation(fields: [fragranceId], references: [id])
   fragranceId  String
   type         ItemType  @default(BOTTLE)
+  quantity     Int       @default(1) // сколько флаконов этого аромата
   volumeMl     Int? // объём флакона
   remainingPct Int       @default(100) // остаток в %
   purchasePrice Decimal? @db.Decimal(10, 2)

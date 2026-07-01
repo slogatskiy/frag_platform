@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { addToCollection } from "@/app/actions/collection";
+import { BottleThumb } from "@/components/bottle-thumb";
 
 export const dynamic = "force-dynamic";
 
@@ -97,14 +98,23 @@ export default async function CatalogPage({
                         {f.name}
                       </div>
                     </div>
-                    <div className="flex h-12 w-9 shrink-0 items-center justify-center rounded-md border border-white/10 bg-gradient-to-b from-white/10 to-transparent text-[10px] text-neutral-500">
-                      ▢
-                    </div>
+                    <BottleThumb
+                      imageUrl={f.imageUrl}
+                      brand={f.brand.name}
+                      className="h-14 w-10 shrink-0"
+                    />
                   </div>
 
-                  <div className="mt-2 text-sm text-neutral-500">
-                    {f.concentration ? CONC_LABEL[f.concentration] : ""}
-                    {f.releaseYear ? ` · ${f.releaseYear}` : ""}
+                  <div className="mt-2 flex items-center justify-between text-sm text-neutral-500">
+                    <span>
+                      {f.concentration ? CONC_LABEL[f.concentration] : ""}
+                      {f.releaseYear ? ` · ${f.releaseYear}` : ""}
+                    </span>
+                    {f.retailPrice != null && (
+                      <span className="font-medium text-neutral-300">
+                        ~${Number(f.retailPrice).toFixed(0)}
+                      </span>
+                    )}
                   </div>
 
                   {f.notesTop.length > 0 && (
