@@ -1,0 +1,112 @@
+// Frag Platform — схема базы данных (Фаза 1: каталог + коллекция)
+// Документация модели данных — в TECH_PLAN.md
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// --- Пользователь (зеркалит Supabase Auth по id) ---
+model User {
+  id        String   @id @default(uuid())
+  handle    String   @unique
+  email     String   @unique
+  name      String?
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  collection CollectionItem[]
+  wishlist   WishlistItem[]
+}
+
+// --- Бренд / дом ---
+model Brand {
+  id      String  @id @default(uuid())
+  name    String  @unique
+  slug    String  @unique
+  country String?
+
+  fragrances Fragrance[]
+}
+
+// --- Аромат (каталог) ---
+model Fragrance {
+  id            String         @id @default(uuid())
+  name          String
+  slug          String         @unique
+  brand         Brand          @relation(fields: [brandId], references: [id])
+  brandId       String
+  house         String? // парфюмер
+  releaseYear   Int?
+  concentration Concentration?
+  notesTop      String[] // верхние ноты
+  notesHeart    String[] // ноты сердца
+  notesBase     String[] // базовые ноты
+  imageUrl      String?
+  externalIds   Json? // ссылки на источники (parfumo/fragrantica и т.п.)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  collectionItems CollectionItem[]
+  wishlistItems   WishlistItem[]
+
+  @@index([brandId])
+  @@index([name])
+}
+
+// --- Позиция в коллекции пользователя ---
+model CollectionItem {
+  id           String    @id @default(uuid())
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  fragrance    Fragrance @relation(fields: [fragranceId], references: [id])
+  fragranceId  String
+  type         ItemType  @default(BOTTLE)
+  volumeMl     Int? // объём флакона
+  remainingPct Int       @default(100) // остаток в %
+  purchasePrice Decimal? @db.Decimal(10, 2)
+  purchaseDate DateTime?
+  batchCode    String?
+  isPublic     Boolean   @default(true)
+  notes        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([fragranceId])
+}
+
+// --- Вишлист ---
+model WishlistItem {
+  id          String    @id @default(uuid())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  fragrance   Fragrance @relation(fields: [fragranceId], references: [id])
+  fragranceId String
+  targetPrice Decimal?  @db.Decimal(10, 2)
+  createdAt   DateTime  @default(now())
+
+  @@unique([userId, fragranceId])
+  @@index([userId])
+}
+
+enum ItemType {
+  BOTTLE // флакон
+  DECANT // отливант
+  SAMPLE // сэмпл
+}
+
+enum Concentration {
+  PARFUM
+  EDP // eau de parfum
+  EDT // eau de toilette
+  EDC // eau de cologne
+  EXTRAIT
+  OTHER
+}
