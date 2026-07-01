@@ -11,18 +11,18 @@ const slugify = (s) =>
 // Небольшой стартовый сид популярных ароматов.
 // Позже заменим/дополним скрейпером крупной БД.
 const DATA = [
-  { brand: "Dior", country: "France", name: "Sauvage", year: 2015, conc: "EDT", top: ["Бергамот", "Перец"], heart: ["Лаванда", "Пачули"], base: ["Амброксан", "Кедр"] },
-  { brand: "Creed", country: "France", name: "Aventus", year: 2010, conc: "EDP", top: ["Ананас", "Бергамот", "Чёрная смородина"], heart: ["Берёза", "Пачули", "Роза"], base: ["Мускус", "Дубовый мох", "Ваниль"] },
-  { brand: "Maison Francis Kurkdjian", country: "France", name: "Baccarat Rouge 540", year: 2015, conc: "EDP", top: ["Шафран", "Жасмин"], heart: ["Амбра", "Дерево"], base: ["Кедр", "Амбра"] },
-  { brand: "Chanel", country: "France", name: "Bleu de Chanel", year: 2010, conc: "EDP", top: ["Грейпфрут", "Лимон", "Мята"], heart: ["Имбирь", "Мускатный орех", "Жасмин"], base: ["Ладан", "Кедр", "Сандал"] },
-  { brand: "Yves Saint Laurent", country: "France", name: "Y EDP", year: 2018, conc: "EDP", top: ["Яблоко", "Имбирь", "Бергамот"], heart: ["Шалфей", "Герань"], base: ["Амбра", "Кедр", "Ветивер"] },
-  { brand: "Tom Ford", country: "USA", name: "Tobacco Vanille", year: 2007, conc: "EDP", top: ["Табак", "Пряности"], heart: ["Ваниль", "Какао", "Табачный цвет"], base: ["Сухофрукты", "Древесина"] },
-  { brand: "Parfums de Marly", country: "France", name: "Layton", year: 2016, conc: "EDP", top: ["Яблоко", "Бергамот", "Лаванда"], heart: ["Герань", "Жасмин", "Фиалка"], base: ["Ваниль", "Сандал", "Пачули"] },
-  { brand: "Dior", country: "France", name: "Homme Intense", year: 2011, conc: "EDP", top: ["Лаванда"], heart: ["Ирис", "Амбра", "Пачули"], base: ["Ветивер", "Кедр"] },
-  { brand: "Giorgio Armani", country: "Italy", name: "Acqua di Gio Profumo", year: 2015, conc: "PARFUM", top: ["Бергамот", "Морская нота"], heart: ["Герань", "Шалфей", "Розмарин"], base: ["Пачули", "Ладан"] },
-  { brand: "Jean Paul Gaultier", country: "France", name: "Le Male", year: 1995, conc: "EDT", top: ["Мята", "Лаванда", "Бергамот"], heart: ["Корица", "Тмин", "Апельсиновый цвет"], base: ["Ваниль", "Сандал", "Амбра"] },
-  { brand: "Versace", country: "Italy", name: "Eros", year: 2012, conc: "EDT", top: ["Мята", "Зелёное яблоко", "Лимон"], heart: ["Тонка", "Амбра", "Герань"], base: ["Ваниль", "Кедр", "Дубовый мох"] },
-  { brand: "Xerjoff", country: "Italy", name: "Naxos", year: 2015, conc: "EDP", top: ["Бергамот", "Лаванда", "Лимон"], heart: ["Мёд", "Табак", "Корица"], base: ["Ваниль", "Тонка"] },
+  { brand: "Dior", country: "France", name: "Sauvage", year: 2015, conc: "EDT", top: ["Bergamot", "Pepper"], heart: ["Lavender", "Patchouli"], base: ["Ambroxan", "Cedar"] },
+  { brand: "Creed", country: "France", name: "Aventus", year: 2010, conc: "EDP", top: ["Pineapple", "Bergamot", "Blackcurrant"], heart: ["Birch", "Patchouli", "Rose"], base: ["Musk", "Oakmoss", "Vanilla"] },
+  { brand: "Maison Francis Kurkdjian", country: "France", name: "Baccarat Rouge 540", year: 2015, conc: "EDP", top: ["Saffron", "Jasmine"], heart: ["Amberwood", "Ambergris"], base: ["Cedar", "Fir resin"] },
+  { brand: "Chanel", country: "France", name: "Bleu de Chanel", year: 2010, conc: "EDP", top: ["Grapefruit", "Lemon", "Mint"], heart: ["Ginger", "Nutmeg", "Jasmine"], base: ["Incense", "Cedar", "Sandalwood"] },
+  { brand: "Yves Saint Laurent", country: "France", name: "Y EDP", year: 2018, conc: "EDP", top: ["Apple", "Ginger", "Bergamot"], heart: ["Sage", "Geranium"], base: ["Amberwood", "Cedar", "Vetiver"] },
+  { brand: "Tom Ford", country: "USA", name: "Tobacco Vanille", year: 2007, conc: "EDP", top: ["Tobacco", "Spices"], heart: ["Vanilla", "Cocoa", "Tobacco blossom"], base: ["Dried fruits", "Woody notes"] },
+  { brand: "Parfums de Marly", country: "France", name: "Layton", year: 2016, conc: "EDP", top: ["Apple", "Bergamot", "Lavender"], heart: ["Geranium", "Jasmine", "Violet"], base: ["Vanilla", "Sandalwood", "Patchouli"] },
+  { brand: "Dior", country: "France", name: "Homme Intense", year: 2011, conc: "EDP", top: ["Lavender"], heart: ["Iris", "Ambrette", "Patchouli"], base: ["Vetiver", "Cedar"] },
+  { brand: "Giorgio Armani", country: "Italy", name: "Acqua di Gio Profumo", year: 2015, conc: "PARFUM", top: ["Bergamot", "Marine notes"], heart: ["Geranium", "Sage", "Rosemary"], base: ["Patchouli", "Incense"] },
+  { brand: "Jean Paul Gaultier", country: "France", name: "Le Male", year: 1995, conc: "EDT", top: ["Mint", "Lavender", "Bergamot"], heart: ["Cinnamon", "Cumin", "Orange blossom"], base: ["Vanilla", "Sandalwood", "Amber"] },
+  { brand: "Versace", country: "Italy", name: "Eros", year: 2012, conc: "EDT", top: ["Mint", "Green apple", "Lemon"], heart: ["Tonka bean", "Amber", "Geranium"], base: ["Vanilla", "Cedar", "Oakmoss"] },
+  { brand: "Xerjoff", country: "Italy", name: "Naxos", year: 2015, conc: "EDP", top: ["Bergamot", "Lavender", "Lemon"], heart: ["Honey", "Tobacco", "Cinnamon"], base: ["Vanilla", "Tonka bean"] },
 ];
 
 async function main() {
@@ -34,9 +34,14 @@ async function main() {
     });
 
     const slug = slugify(`${f.brand} ${f.name}`);
+    const fields = {
+      notesTop: f.top,
+      notesHeart: f.heart,
+      notesBase: f.base,
+    };
     await prisma.fragrance.upsert({
       where: { slug },
-      update: {},
+      update: fields,
       create: {
         name: f.name,
         slug,

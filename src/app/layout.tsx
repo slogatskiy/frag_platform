@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Fraunces } from "next/font/google";
 import "./globals.css";
+import { SiteHeader } from "@/components/site-header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -12,10 +13,17 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  weight: ["400", "500", "600", "700"],
+});
+
 export const metadata: Metadata = {
-  title: "Frag — сколько стоит твоя полка",
+  title: "Frag — how much is your shelf worth?",
   description:
-    "Каталог твоей коллекции парфюма, её реальная рыночная стоимость, cost-per-wear и алерты о падении цены.",
+    "Track your fragrance collection, its real market value, cost-per-wear and price-drop alerts. Not just a catalog — a portfolio tracker for perfume.",
 };
 
 export default function RootLayout({
@@ -26,9 +34,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col bg-neutral-950 text-neutral-100">
+        <SiteHeader />
+        {children}
+      </body>
     </html>
   );
 }
