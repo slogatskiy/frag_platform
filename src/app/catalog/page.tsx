@@ -8,21 +8,30 @@ export const dynamic = "force-dynamic";
 
 type SearchParams = Promise<{ q?: string }>;
 
+const PAGE_SIZE = 60;
+
 async function getFragrances(q?: string) {
   try {
-    return await prisma.fragrance.findMany({
-      where: q
-        ? {
-            OR: [
-              { name: { contains: q, mode: "insensitive" } },
-              { brand: { name: { contains: q, mode: "insensitive" } } },
-            ],
-          }
-        : undefined,
-      include: { brand: true },
-      orderBy: [{ brand: { name: "asc" } }, { name: "asc" }],
-      take: 100,
-    });
+    const where = q
+      ? {
+          OR: [
+            { name: { contains: q, mode: "insensitive" as const } },
+            { brand: { name: { contains: q, mode: "insensitive" as const } } },
+          ],
+        }
+      : undefined;
+
+    const [list, total] = await Promise.all([
+      prisma.fragrance.findMany({
+        where,
+        include: { brand: true },
+        // приоритет — записи с ценой (кураторские), затем по бренду/имени
+        orderBy: [{ retailPrice: { sort: "desc", nulls: "last" } }, { brand: { name: "asc" } }, { name: "asc" }],
+        take: PAGE_SIZE,
+      }),
+      prisma.fragrance.count({ where }),
+    ]);
+    return { list, total };
   } catch {
     return null; // database not reachable (e.g. env not set on this host)
   }
@@ -88,18 +97,23 @@ export default async function CatalogPage({
             The database isn&apos;t connected on this environment yet. The
             catalog works locally.
           </p>
-        ) : fragrances.length === 0 ? (
+        ) : fragrances.list.length === 0 ? (
           <p className="mt-12 text-neutral-500">
             Nothing found{q ? ` for “${q}”` : ""}.
           </p>
         ) : (
           <>
             <div className="mt-8 text-sm text-neutral-500">
-              {fragrances.length} fragrance
-              {fragrances.length === 1 ? "" : "s"}
+              {q
+                ? `${fragrances.total.toLocaleString("en-US")} result${
+                    fragrances.total === 1 ? "" : "s"
+                  } for “${q}”${
+                    fragrances.total > PAGE_SIZE ? ` · showing first ${PAGE_SIZE}` : ""
+                  }`
+                : `${fragrances.total.toLocaleString("en-US")} fragrances · search to narrow down`}
             </div>
             <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {fragrances.map((f) => (
+              {fragrances.list.map((f) => (
                 <div
                   key={f.id}
                   className="group flex flex-col rounded-2xl border border-white/8 bg-white/[0.02] p-5 transition hover:border-white/20 hover:bg-white/[0.04]"
