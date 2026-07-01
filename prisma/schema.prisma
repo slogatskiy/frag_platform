@@ -45,6 +45,8 @@ model Fragrance {
   house         String? // парфюмер
   releaseYear   Int?
   concentration Concentration?
+  retailPrice   Decimal?       @db.Decimal(10, 2) // ориентир. ритейл-цена (до ценового слоя)
+  retailVolume  Int? // мл, к которым относится retailPrice
   notesTop      String[] // верхние ноты
   notesHeart    String[] // ноты сердца
   notesBase     String[] // базовые ноты

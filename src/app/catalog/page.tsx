@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { addToCollection } from "@/app/actions/collection";
 
 export const dynamic = "force-dynamic";
 
@@ -119,9 +120,17 @@ export default async function CatalogPage({
                     </div>
                   )}
 
-                  <button className="mt-5 w-full rounded-full border border-white/12 py-2 text-sm font-medium text-neutral-300 transition group-hover:border-white/25 hover:bg-white/5">
-                    + Add to collection
-                  </button>
+                  <form
+                    className="mt-5"
+                    action={async () => {
+                      "use server";
+                      await addToCollection(f.id);
+                    }}
+                  >
+                    <button className="w-full rounded-full border border-white/12 py-2 text-sm font-medium text-neutral-300 transition group-hover:border-white/25 hover:bg-white/5">
+                      + Add to collection
+                    </button>
+                  </form>
                 </div>
               ))}
             </div>
