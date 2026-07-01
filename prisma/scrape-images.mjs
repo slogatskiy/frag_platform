@@ -20,7 +20,7 @@ const rows = parse(readFileSync(CSV_PATH), {
   columns: true, skip_empty_lines: true, relax_quotes: true, relax_column_count: true,
 });
 const baseCount = new Map();
-const urlBySlug = new Map();
+const meta = []; // {slug, url, rating}
 for (const r of rows) {
   const name = na(r.Name), brand = na(r.Brand), url = na(r.URL);
   if (!name || !brand) continue;
@@ -29,20 +29,30 @@ for (const r of rows) {
   const n = (baseCount.get(base) ?? 0) + 1;
   baseCount.set(base, n);
   const slug = n === 1 ? base : `${base}-${n}`;
-  if (url) urlBySlug.set(slug, url);
+  if (url) meta.push({ slug, url, rating: parseFloat(na(r.Rating_Count)) || 0 });
 }
-console.log(`URLs mapped: ${urlBySlug.size}`);
+// приоритет — самые популярные (по числу оценок)
+meta.sort((a, b) => b.rating - a.rating);
+console.log(`URLs mapped: ${meta.length}`);
 
-// Ароматы без фото, приоритет — с ценой (кураторские) и известные бренды
-const targets = await prisma.fragrance.findMany({
-  where: { imageUrl: null },
-  select: { id: true, slug: true },
-  orderBy: [{ retailPrice: { sort: "desc", nulls: "last" } }],
-  take: LIMIT * 3, // берём с запасом, т.к. не у всех есть URL
-});
+// Слаги ароматов без фото (одним запросом)
+const missing = new Map(
+  (
+    await prisma.fragrance.findMany({
+      where: { imageUrl: null },
+      select: { id: true, slug: true },
+    })
+  ).map((f) => [f.slug, f.id])
+);
 
-const work = targets.filter((t) => urlBySlug.has(t.slug)).slice(0, LIMIT);
-console.log(`Fetching images for ${work.length} fragrances…`);
+const work = [];
+for (const m of meta) {
+  const id = missing.get(m.slug);
+  if (id) work.push({ id, slug: m.slug, url: m.url });
+  if (work.length >= LIMIT) break;
+}
+const urlBySlug = new Map(work.map((w) => [w.slug, w.url]));
+console.log(`Fetching images for ${work.length} fragrances (most popular first)…`);
 
 async function fetchImage(url) {
   const res = await fetch(url, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(20000) });
