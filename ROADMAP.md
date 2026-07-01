@@ -7,8 +7,8 @@
 - [x] Проверить окружение (node, gh, git)
 - [x] Написать планы (TECH_PLAN, CREATIVE_PLAN, ROADMAP)
 - [x] `git init` + ветка `main`
-- [ ] Создать приватный GitHub-репозиторий, первый push
-- [ ] Скелет Next.js + TypeScript + Tailwind
+- [x] Создать приватный GitHub-репозиторий, первый push
+- [x] Скелет Next.js + TypeScript + Tailwind
 - [ ] Подключить Prisma + Supabase (пустая схема, миграция)
 - [ ] Задеплоить пустышку на Vercel (проверить автодеплой с push)
 
