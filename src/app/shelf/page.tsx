@@ -51,6 +51,12 @@ export default async function ShelfPage() {
             <h1 className="mt-1 font-display text-4xl font-semibold tracking-tight">
               My Shelf
             </h1>
+            <Link
+              href={`/u/${user.handle}`}
+              className="mt-2 inline-block text-sm text-amber-300/80 transition hover:text-amber-200"
+            >
+              View public page →
+            </Link>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-6 py-4 text-right">
             <div className="text-xs uppercase tracking-wide text-neutral-500">

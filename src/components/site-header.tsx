@@ -25,9 +25,17 @@ export async function SiteHeader() {
             Catalog
           </Link>
           {user && (
-            <Link href="/shelf" className="transition hover:text-neutral-100">
-              My Shelf
-            </Link>
+            <>
+              <Link href="/shelf" className="transition hover:text-neutral-100">
+                My Shelf
+              </Link>
+              <Link href="/wishlist" className="transition hover:text-neutral-100">
+                Wishlist
+              </Link>
+              <Link href="/friends" className="transition hover:text-neutral-100">
+                Friends
+              </Link>
+            </>
           )}
         </nav>
 

@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { addToCollection } from "@/app/actions/collection";
+import { addToWishlist, removeFromWishlist } from "@/app/actions/wishlist";
+import { getCurrentUser } from "@/lib/auth";
 import { BottleThumb } from "@/components/bottle-thumb";
 
 export const dynamic = "force-dynamic";
@@ -42,6 +44,19 @@ export default async function CatalogPage({
 }) {
   const { q } = await searchParams;
   const fragrances = await getFragrances(q);
+
+  // Что уже в вишлисте текущего пользователя — чтобы залить сердечко.
+  const me = await getCurrentUser().catch(() => null);
+  const wishlistIds = me
+    ? new Set(
+        (
+          await prisma.wishlistItem.findMany({
+            where: { userId: me.id },
+            select: { fragranceId: true },
+          })
+        ).map((w) => w.fragranceId)
+      )
+    : new Set<string>();
 
   return (
     <main className="flex-1">
@@ -130,17 +145,42 @@ export default async function CatalogPage({
                     </div>
                   )}
 
-                  <form
-                    className="mt-5"
-                    action={async () => {
-                      "use server";
-                      await addToCollection(f.id);
-                    }}
-                  >
-                    <button className="w-full rounded-full border border-white/12 py-2 text-sm font-medium text-neutral-300 transition group-hover:border-white/25 hover:bg-white/5">
-                      + Add to collection
-                    </button>
-                  </form>
+                  <div className="mt-5 flex items-center gap-2">
+                    <form
+                      className="flex-1"
+                      action={async () => {
+                        "use server";
+                        await addToCollection(f.id);
+                      }}
+                    >
+                      <button className="w-full rounded-full border border-white/12 py-2 text-sm font-medium text-neutral-300 transition group-hover:border-white/25 hover:bg-white/5">
+                        + Add to collection
+                      </button>
+                    </form>
+                    {(() => {
+                      const wished = wishlistIds.has(f.id);
+                      return (
+                        <form
+                          action={async () => {
+                            "use server";
+                            if (wished) await removeFromWishlist(f.id);
+                            else await addToWishlist(f.id);
+                          }}
+                        >
+                          <button
+                            aria-label={wished ? "remove from wishlist" : "add to wishlist"}
+                            className={`rounded-full border px-3 py-2 text-sm transition ${
+                              wished
+                                ? "border-fuchsia-400/40 bg-fuchsia-500/10 text-fuchsia-300"
+                                : "border-white/12 text-neutral-500 hover:border-white/25 hover:text-fuchsia-300"
+                            }`}
+                          >
+                            {wished ? "♥" : "♡"}
+                          </button>
+                        </form>
+                      );
+                    })()}
+                  </div>
                 </div>
               ))}
             </div>

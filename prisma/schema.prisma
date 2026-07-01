@@ -23,6 +23,29 @@ model User {
 
   collection CollectionItem[]
   wishlist   WishlistItem[]
+
+  sentRequests     Friendship[] @relation("requester")
+  receivedRequests Friendship[] @relation("addressee")
+}
+
+// --- Дружба (запрос → принятие) ---
+model Friendship {
+  id          String       @id @default(uuid())
+  requester   User         @relation("requester", fields: [requesterId], references: [id], onDelete: Cascade)
+  requesterId String
+  addressee   User         @relation("addressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+  addresseeId String
+  status      FriendStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+
+  @@unique([requesterId, addresseeId])
+  @@index([addresseeId])
+  @@index([requesterId])
+}
+
+enum FriendStatus {
+  PENDING
+  ACCEPTED
 }
 
 // --- Бренд / дом ---
