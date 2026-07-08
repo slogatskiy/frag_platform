@@ -71,6 +71,7 @@ model Fragrance {
   concentration Concentration?
   retailPrice   Decimal?       @db.Decimal(10, 2) // ориентир. ритейл-цена (до ценового слоя)
   retailVolume  Int? // мл, к которым относится retailPrice
+  priceEstimated Boolean       @default(false) // true = цена оценочная (эвристика), не реальная
   notesTop      String[] // верхние ноты
   notesHeart    String[] // ноты сердца
   notesBase     String[] // базовые ноты

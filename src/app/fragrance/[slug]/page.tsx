@@ -141,7 +141,12 @@ export default async function FragrancePage({
               {f.concentration && f.releaseYear ? " · " : ""}
               {f.releaseYear ?? ""}
               {retail != null && (
-                <span className="ml-2 text-neutral-300">· ~{fmtUsd(retail)}</span>
+                <span className="ml-2 text-neutral-300">
+                  · ~{fmtUsd(retail)}
+                  {f.priceEstimated && (
+                    <span className="ml-1 text-xs text-neutral-600">est.</span>
+                  )}
+                </span>
               )}
             </div>
 
