@@ -6,9 +6,11 @@ const prisma = new PrismaClient();
 
 const CSV_PATH = process.argv[2];
 const LIMIT = parseInt(process.argv[3] ?? "250", 10);
-const CONCURRENCY = 6;
+const CONCURRENCY = parseInt(process.argv[4] ?? "3", 10);
+const DELAY_MS = parseInt(process.argv[5] ?? "900", 10);
 const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36";
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const na = (v) => (v == null || v === "NA" || v === "" ? null : v);
 const slugify = (s) =>
@@ -64,30 +66,65 @@ function imageMatchesName(imageUrl, name) {
   return check.some((t) => file.includes(t));
 }
 
+const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// Возвращает { img } или { blocked: true } (Cloudflare / rate-limit).
+// Главный метод: картинка из грида по ТОЧНОМУ совпадению href с URL аромата
+// (устойчиво к рандомизации og:image при rate-limit). og:image — фолбэк.
 async function fetchImage(url, name) {
-  const res = await fetch(url, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(20000) });
-  if (!res.ok) return null;
+  const res = await fetch(url, {
+    headers: { "User-Agent": UA, "Accept-Language": "en-US,en;q=0.9" },
+    signal: AbortSignal.timeout(20000),
+  });
+  if (res.status === 403 || res.status === 429) return { blocked: true };
+  if (!res.ok) return { img: null };
   const html = await res.text();
-  const m = html.match(/<meta\s+property="og:image"\s+content="([^"]+)"/i);
-  if (!m) return null;
-  // отбрасываем чужой/случайный og:image (анти-бот отдаёт мусор)
-  return imageMatchesName(m[1], name) ? m[1] : null;
+  if (html.includes("Just a moment") || html.includes("cf-challenge")) return { blocked: true };
+
+  // 1) точное совпадение по пути ссылки (берём финальный URL после редиректа)
+  const path = decodeURIComponent(new URL(res.url).pathname);
+  const hrefRe = new RegExp(escRe(path) + '"[^>]*>\\s*<img[^>]+src="([^"?]+)', "i");
+  const hm = html.match(hrefRe);
+  if (hm && imageMatchesName(hm[1], name)) return { img: hm[1] };
+
+  // 2) фолбэк: og:image (только если проходит валидацию)
+  const om = html.match(/<meta\s+property="og:image"\s+content="([^"?]+)/i);
+  if (om && imageMatchesName(om[1], name)) return { img: om[1] };
+
+  return { img: null };
 }
 
-let ok = 0, fail = 0, done = 0;
+let ok = 0, fail = 0, done = 0, blockedStreak = 0, blockedTotal = 0, noMatch = 0, aborted = false;
 async function worker(items) {
   for (const t of items) {
+    if (aborted) return;
     try {
-      const img = await fetchImage(t.url, t.name);
-      if (img) {
-        await prisma.fragrance.update({ where: { id: t.id }, data: { imageUrl: img } });
-        ok += 1;
-      } else fail += 1;
+      const r = await fetchImage(t.url, t.name);
+      if (r.blocked) {
+        blockedStreak += 1;
+        blockedTotal += 1;
+        fail += 1;
+        if (blockedStreak >= 8) {
+          aborted = true;
+          console.log("⛔ Похоже, снова блок Parfumo — останавливаюсь, чтобы не долбить.");
+          return;
+        }
+      } else {
+        blockedStreak = 0;
+        if (r.img) {
+          await prisma.fragrance.update({ where: { id: t.id }, data: { imageUrl: r.img } });
+          ok += 1;
+        } else {
+          fail += 1;
+          noMatch += 1;
+        }
+      }
     } catch {
       fail += 1;
     }
     done += 1;
     if (done % 25 === 0) console.log(`  …${done}/${work.length} (ok:${ok} fail:${fail})`);
+    await sleep(DELAY_MS + Math.floor(Math.random() * 500));
   }
 }
 
@@ -96,5 +133,5 @@ const buckets = Array.from({ length: CONCURRENCY }, () => []);
 work.forEach((t, i) => buckets[i % CONCURRENCY].push(t));
 await Promise.all(buckets.map(worker));
 
-console.log(`✅ Done. Images set: ${ok}, failed: ${fail}`);
+console.log(`✅ Done. Images set: ${ok}, failed: ${fail} (blocked/challenge: ${blockedTotal}, no-match/other: ${noMatch})`);
 await prisma.$disconnect();
