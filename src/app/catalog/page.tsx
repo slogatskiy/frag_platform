@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { addToCollection } from "@/app/actions/collection";
 import { addToWishlist, removeFromWishlist } from "@/app/actions/wishlist";
@@ -118,12 +119,15 @@ export default async function CatalogPage({
                   key={f.id}
                   className="group flex flex-col rounded-2xl border border-white/8 bg-white/[0.02] p-5 transition hover:border-white/20 hover:bg-white/[0.04]"
                 >
-                  <div className="flex items-start justify-between gap-3">
+                  <Link
+                    href={`/fragrance/${f.slug}`}
+                    className="flex items-start justify-between gap-3"
+                  >
                     <div>
                       <div className="text-xs uppercase tracking-wider text-amber-300/70">
                         {f.brand.name}
                       </div>
-                      <div className="mt-1 font-display text-lg font-semibold leading-snug">
+                      <div className="mt-1 font-display text-lg font-semibold leading-snug transition group-hover:text-white">
                         {f.name}
                       </div>
                     </div>
@@ -132,7 +136,7 @@ export default async function CatalogPage({
                       brand={f.brand.name}
                       className="h-14 w-10 shrink-0"
                     />
-                  </div>
+                  </Link>
 
                   <div className="mt-2 flex items-center justify-between text-sm text-neutral-500">
                     <span>
