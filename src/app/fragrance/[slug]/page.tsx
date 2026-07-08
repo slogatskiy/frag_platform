@@ -27,12 +27,13 @@ function NoteRow({ label, notes }: { label: string; notes: string[] }) {
       </div>
       <div className="flex flex-wrap gap-2">
         {notes.map((n) => (
-          <span
+          <Link
             key={n}
-            className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-sm text-neutral-300"
+            href={`/discover?notes=${encodeURIComponent(n)}`}
+            className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-sm text-neutral-300 transition hover:border-amber-400/40 hover:text-amber-200"
           >
             {n}
-          </span>
+          </Link>
         ))}
       </div>
     </div>

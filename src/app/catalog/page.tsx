@@ -153,12 +153,13 @@ export default async function CatalogPage({
                   {f.notesTop.length > 0 && (
                     <div className="mt-4 flex flex-wrap gap-1.5">
                       {f.notesTop.slice(0, 3).map((n) => (
-                        <span
+                        <Link
                           key={n}
-                          className="rounded-full border border-white/8 bg-white/[0.03] px-2.5 py-1 text-xs text-neutral-400"
+                          href={`/discover?notes=${encodeURIComponent(n)}`}
+                          className="rounded-full border border-white/8 bg-white/[0.03] px-2.5 py-1 text-xs text-neutral-400 transition hover:border-amber-400/40 hover:text-amber-200"
                         >
                           {n}
-                        </span>
+                        </Link>
                       ))}
                     </div>
                   )}

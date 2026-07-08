@@ -16,10 +16,11 @@ model User {
   id        String   @id @default(uuid())
   handle    String   @unique
   email     String   @unique
-  name      String?
-  avatarUrl String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  name          String?
+  avatarUrl     String?
+  favoriteNotes String[] @default([]) // любимые ноты для подбора
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   collection CollectionItem[]
   wishlist   WishlistItem[]
