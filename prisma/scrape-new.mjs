@@ -22,8 +22,10 @@ const decode = (s) =>
 // Карточка: <a href="...Perfumes/..."><img src="...perfumes/..._1200.jpg?..." alt="Name by Brand">
 const CARD = /href="(https:\/\/www\.parfumo\.com\/Perfumes\/[^"]+)"><img src="(https:\/\/media\.parfumo\.com\/perfumes\/[^"?]+)[^"]*" alt="([^"]+)"/g;
 
-async function fetchPage(year, page) {
-  const url = `https://www.parfumo.com/Release_Years/${year}?current_page=${page}&v=grid&o=n_asc&g_f=1&g_m=1&g_u=1&y_0=${year}`;
+async function fetchPage(year, sort) {
+  // current_page на Parfumo грузится через JS и статикой не берётся,
+  // но сортировка o= работает — перебираем разные сортировки для охвата.
+  const url = `https://www.parfumo.com/Release_Years/${year}?current_page=1&v=grid&o=${sort}&g_f=1&g_m=1&g_u=1&y_0=${year}`;
   const res = await fetch(url, { headers: { "User-Agent": UA, "Accept-Language": "en-US,en;q=0.9" }, signal: AbortSignal.timeout(25000) });
   if (res.status === 403 || res.status === 429) return { blocked: true };
   if (!res.ok) return { cards: [] };
@@ -44,30 +46,20 @@ async function fetchPage(year, page) {
   return { cards };
 }
 
+// Разные сортировки дают разные срезы первой страницы — объединяем.
+const SORTS = ["d_desc", "d_asc", "r_desc", "p_desc", "p_asc", "n_asc", "n_desc", "rd_desc"];
 const collected = new Map(); // slug -> {name, brand, img, year}
 for (const year of YEARS) {
-  let page = 1, prevFirst = null, blocked = 0;
-  while (page <= 400) {
-    const { cards, blocked: b } = await fetchPage(year, page);
-    if (b) {
-      blocked += 1;
-      if (blocked >= 5) { console.log(`⛔ ${year}: блок, стоп`); break; }
-      await sleep(3000);
-      continue;
-    }
-    blocked = 0;
-    if (!cards.length) break;
-    if (cards[0].purl === prevFirst) break; // зациклились на последней странице
-    prevFirst = cards[0].purl;
+  for (const sort of SORTS) {
+    const { cards, blocked } = await fetchPage(year, sort);
+    if (blocked) { await sleep(3000); continue; }
     for (const c of cards) {
       const slug = slugify(`${c.brand} ${c.name}`);
       if (slug && !collected.has(slug)) collected.set(slug, { ...c, year });
     }
-    if (page % 10 === 0) console.log(`  ${year} page ${page}: собрано ${collected.size}`);
-    page += 1;
-    await sleep(800);
+    await sleep(700);
   }
-  console.log(`✅ ${year}: всего собрано (накоплено) ${collected.size}`);
+  console.log(`✅ ${year}: накоплено уникальных ${collected.size}`);
 }
 
 const all = [...collected.values()];
