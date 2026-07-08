@@ -109,9 +109,12 @@ export default async function ShelfPage() {
                       <div className="text-xs uppercase tracking-wider text-amber-300/70">
                         {it.fragrance.brand.name}
                       </div>
-                      <div className="mt-1 font-display text-lg font-semibold leading-snug">
+                      <Link
+                        href={`/fragrance/${it.fragrance.slug}`}
+                        className="mt-1 block font-display text-lg font-semibold leading-snug transition hover:text-white"
+                      >
                         {it.fragrance.name}
-                      </div>
+                      </Link>
                       <div className="mt-1 text-sm text-neutral-500">
                         {it.volumeMl ? `${it.volumeMl} ml` : "—"} ·{" "}
                         {it.remainingPct}% left

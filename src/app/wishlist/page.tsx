@@ -59,9 +59,12 @@ export default async function WishlistPage() {
                     <div className="text-xs uppercase tracking-wider text-amber-300/70">
                       {w.fragrance.brand.name}
                     </div>
-                    <div className="mt-1 font-display text-lg font-semibold leading-snug">
+                    <Link
+                      href={`/fragrance/${w.fragrance.slug}`}
+                      className="mt-1 block font-display text-lg font-semibold leading-snug transition hover:text-white"
+                    >
                       {w.fragrance.name}
-                    </div>
+                    </Link>
                     {w.fragrance.retailPrice != null && (
                       <div className="mt-1 text-sm text-neutral-400">
                         ~{fmtUsd(Number(w.fragrance.retailPrice))}
