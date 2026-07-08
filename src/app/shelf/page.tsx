@@ -14,9 +14,23 @@ const fmtUsd = (n: number) =>
     maximumFractionDigits: 0,
   });
 
-export default async function ShelfPage() {
+const SORT_OPTIONS: { key: string; label: string }[] = [
+  { key: "added", label: "Date added" },
+  { key: "value", label: "Value" },
+  { key: "name", label: "Name A–Z" },
+  { key: "brand", label: "Brand" },
+  { key: "year", label: "Newest" },
+];
+
+export default async function ShelfPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sort?: string }>;
+}) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
+  const { sort } = await searchParams;
+  const activeSort = sort ?? "added";
 
   const items = await prisma.collectionItem.findMany({
     where: { userId: user.id },
@@ -40,6 +54,28 @@ export default async function ShelfPage() {
   );
 
   const totalBottles = items.reduce((n, it) => n + it.quantity, 0);
+
+  const itemValue = (it: (typeof items)[number]) =>
+    valueOf(it.fragrance.retailPrice ? Number(it.fragrance.retailPrice) : null, it.remainingPct) *
+    it.quantity;
+
+  const sortedItems = [...items].sort((a, b) => {
+    switch (activeSort) {
+      case "value":
+        return itemValue(b) - itemValue(a);
+      case "name":
+        return a.fragrance.name.localeCompare(b.fragrance.name);
+      case "brand":
+        return (
+          a.fragrance.brand.name.localeCompare(b.fragrance.brand.name) ||
+          a.fragrance.name.localeCompare(b.fragrance.name)
+        );
+      case "year":
+        return (b.fragrance.releaseYear ?? 0) - (a.fragrance.releaseYear ?? 0);
+      default: // added
+        return b.createdAt.getTime() - a.createdAt.getTime();
+    }
+  });
 
   return (
     <main className="flex-1">
@@ -88,8 +124,29 @@ export default async function ShelfPage() {
             </Link>
           </div>
         ) : (
-          <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((it) => {
+          <>
+            {/* Sort bar */}
+            <div className="mt-8 flex flex-wrap items-center gap-2">
+              <span className="text-xs uppercase tracking-wide text-neutral-600">
+                Sort:
+              </span>
+              {SORT_OPTIONS.map((o) => (
+                <Link
+                  key={o.key}
+                  href={o.key === "added" ? "/shelf" : `/shelf?sort=${o.key}`}
+                  className={`rounded-full border px-3 py-1 text-xs transition ${
+                    activeSort === o.key
+                      ? "border-amber-400/50 bg-amber-400/15 text-amber-200"
+                      : "border-white/10 bg-white/[0.03] text-neutral-400 hover:border-white/25"
+                  }`}
+                >
+                  {o.label}
+                </Link>
+              ))}
+            </div>
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {sortedItems.map((it) => {
               const retail = it.fragrance.retailPrice
                 ? Number(it.fragrance.retailPrice)
                 : null;
@@ -188,7 +245,8 @@ export default async function ShelfPage() {
                 </div>
               );
             })}
-          </div>
+            </div>
+          </>
         )}
       </div>
     </main>

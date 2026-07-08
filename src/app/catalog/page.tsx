@@ -7,11 +7,38 @@ import { BottleThumb } from "@/components/bottle-thumb";
 
 export const dynamic = "force-dynamic";
 
-type SearchParams = Promise<{ q?: string }>;
+type SearchParams = Promise<{ q?: string; sort?: string }>;
 
 const PAGE_SIZE = 60;
 
-async function getFragrances(q?: string) {
+export const SORT_OPTIONS: { key: string; label: string }[] = [
+  { key: "featured", label: "Featured" },
+  { key: "name", label: "Name A–Z" },
+  { key: "year_desc", label: "Newest" },
+  { key: "year_asc", label: "Oldest" },
+  { key: "price_desc", label: "Price high→low" },
+];
+
+function orderByFor(sort?: string) {
+  switch (sort) {
+    case "name":
+      return [{ brand: { name: "asc" as const } }, { name: "asc" as const }];
+    case "year_desc":
+      return [{ releaseYear: { sort: "desc" as const, nulls: "last" as const } }, { name: "asc" as const }];
+    case "year_asc":
+      return [{ releaseYear: { sort: "asc" as const, nulls: "last" as const } }, { name: "asc" as const }];
+    case "price_desc":
+      return [{ retailPrice: { sort: "desc" as const, nulls: "last" as const } }, { name: "asc" as const }];
+    default: // featured: сначала с фото, затем с ценой, затем по имени
+      return [
+        { imageUrl: { sort: "desc" as const, nulls: "last" as const } },
+        { retailPrice: { sort: "desc" as const, nulls: "last" as const } },
+        { name: "asc" as const },
+      ];
+  }
+}
+
+async function getFragrances(q?: string, sort?: string) {
   try {
     const where = q
       ? {
@@ -26,8 +53,7 @@ async function getFragrances(q?: string) {
       prisma.fragrance.findMany({
         where,
         include: { brand: true },
-        // приоритет — записи с ценой (кураторские), затем по бренду/имени
-        orderBy: [{ retailPrice: { sort: "desc", nulls: "last" } }, { brand: { name: "asc" } }, { name: "asc" }],
+        orderBy: orderByFor(sort),
         take: PAGE_SIZE,
       }),
       prisma.fragrance.count({ where }),
@@ -52,8 +78,16 @@ export default async function CatalogPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const { q } = await searchParams;
-  const fragrances = await getFragrances(q);
+  const { q, sort } = await searchParams;
+  const activeSort = sort ?? "featured";
+  const fragrances = await getFragrances(q, activeSort);
+  const sortHref = (key: string) => {
+    const p = new URLSearchParams();
+    if (q) p.set("q", q);
+    if (key !== "featured") p.set("sort", key);
+    const s = p.toString();
+    return s ? `/catalog?${s}` : "/catalog";
+  };
 
   // Что уже в вишлисте текущего пользователя — чтобы залить сердечко.
   const me = await getCurrentUser().catch(() => null);
@@ -79,6 +113,9 @@ export default async function CatalogPage({
         </p>
 
         <form className="mt-8 max-w-xl" action="/catalog">
+          {activeSort !== "featured" && (
+            <input type="hidden" name="sort" value={activeSort} />
+          )}
           <div className="relative">
             <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-neutral-600">
               ⌕
@@ -92,6 +129,24 @@ export default async function CatalogPage({
             />
           </div>
         </form>
+
+        {/* Sort bar */}
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <span className="text-xs uppercase tracking-wide text-neutral-600">Sort:</span>
+          {SORT_OPTIONS.map((o) => (
+            <Link
+              key={o.key}
+              href={sortHref(o.key)}
+              className={`rounded-full border px-3 py-1 text-xs transition ${
+                activeSort === o.key
+                  ? "border-amber-400/50 bg-amber-400/15 text-amber-200"
+                  : "border-white/10 bg-white/[0.03] text-neutral-400 hover:border-white/25"
+              }`}
+            >
+              {o.label}
+            </Link>
+          ))}
+        </div>
 
         {fragrances === null ? (
           <p className="mt-12 rounded-2xl border border-amber-900/40 bg-amber-950/20 p-5 text-sm text-amber-200/90">
