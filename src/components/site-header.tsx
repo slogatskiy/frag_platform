@@ -29,6 +29,9 @@ export async function SiteHeader() {
           </Link>
           {user && (
             <>
+              <Link href="/feed" className="transition hover:text-neutral-100">
+                Feed
+              </Link>
               <Link href="/shelf" className="transition hover:text-neutral-100">
                 My Shelf
               </Link>

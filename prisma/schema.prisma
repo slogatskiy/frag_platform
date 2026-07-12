@@ -24,9 +24,42 @@ model User {
 
   collection CollectionItem[]
   wishlist   WishlistItem[]
+  posts      Post[]
+  postLikes  PostLike[]
 
   sentRequests     Friendship[] @relation("requester")
   receivedRequests Friendship[] @relation("addressee")
+}
+
+// --- Пост (впечатление/отзыв об аромате) — шаримая соц-единица ---
+model Post {
+  id          String    @id @default(uuid())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  fragrance   Fragrance @relation(fields: [fragranceId], references: [id])
+  fragranceId String
+  rating      Int? // 1..10, опционально
+  body        String    @db.Text
+  createdAt   DateTime  @default(now())
+
+  likes PostLike[]
+
+  @@index([userId])
+  @@index([fragranceId])
+  @@index([createdAt])
+}
+
+// --- Лайк поста ---
+model PostLike {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+  @@index([postId])
 }
 
 // --- Дружба (запрос → принятие) ---
@@ -82,6 +115,7 @@ model Fragrance {
 
   collectionItems CollectionItem[]
   wishlistItems   WishlistItem[]
+  posts           Post[]
 
   @@index([brandId])
   @@index([name])

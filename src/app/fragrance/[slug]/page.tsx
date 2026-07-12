@@ -6,6 +6,9 @@ import { fmtUsd } from "@/lib/valuation";
 import { addToCollection } from "@/app/actions/collection";
 import { addToWishlist, removeFromWishlist } from "@/app/actions/wishlist";
 import { BottleThumb } from "@/components/bottle-thumb";
+import { PostComposer } from "@/components/post-composer";
+import { PostCard } from "@/components/post-card";
+import { getFragrancePosts } from "@/lib/posts";
 
 export const dynamic = "force-dynamic";
 
@@ -99,6 +102,8 @@ export default async function FragrancePage({
       friendsWant = want.map((w) => w.user);
     }
   }
+
+  const posts = await getFragrancePosts(f.id, me?.id ?? null);
 
   const retail = f.retailPrice ? Number(f.retailPrice) : null;
   const wished = !!myWish;
@@ -244,6 +249,45 @@ export default async function FragrancePage({
                 )}
               </div>
             )}
+
+            {/* Community / posts */}
+            <div className="mt-10">
+              <h2 className="font-display text-xl font-semibold">
+                Impressions
+                {posts.length > 0 && (
+                  <span className="ml-2 text-sm font-normal text-neutral-500">
+                    {posts.length}
+                  </span>
+                )}
+              </h2>
+
+              {me ? (
+                <div className="mt-4">
+                  <PostComposer fragranceId={f.id} />
+                </div>
+              ) : (
+                <p className="mt-3 text-sm text-neutral-500">
+                  <Link href="/login" className="text-amber-300 hover:text-amber-200">
+                    Sign in
+                  </Link>{" "}
+                  to share your impression.
+                </p>
+              )}
+
+              {posts.length > 0 ? (
+                <div className="mt-5 flex flex-col gap-4">
+                  {posts.map((p) => (
+                    <PostCard key={p.id} post={p} />
+                  ))}
+                </div>
+              ) : (
+                me && (
+                  <p className="mt-4 text-sm text-neutral-500">
+                    No impressions yet — be the first.
+                  </p>
+                )
+              )}
+            </div>
           </div>
         </div>
       </div>

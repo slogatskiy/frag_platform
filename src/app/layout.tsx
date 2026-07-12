@@ -20,7 +20,10 @@ const fraunces = Fraunces({
   weight: ["400", "500", "600", "700"],
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://frag-platform.vercel.app";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "Frag — how much is your shelf worth?",
   description:
     "Track your fragrance collection, its real market value, cost-per-wear and price-drop alerts. Not just a catalog — a portfolio tracker for perfume.",
