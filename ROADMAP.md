@@ -22,13 +22,16 @@ Next.js 16 (App Router, TS, Turbopack) · Tailwind v4 · Prisma 6 · PostgreSQL 
 - **Логин** — email+пароль (Supabase Auth)
 - **Фото** ~4 700 (топ-популярные) со страниц Parfumo
 - **Цены — фаза 1**: оценка по тиру бренда × концентрации на все 59k (флаг `priceEstimated`, метка «est.»)
+- **🫂 СОЦ-СЕТЬ (2026-07-12)**: **посты-впечатления** (рейтинг 1–10 + текст) — модели `Post`/`PostLike`. Лента `/feed` (единый таймлайн: посты друзей + активность коллекция/вишлист). **Шаримая страница поста `/p/[id]` с OG/Twitter-картой** (разворачивается ссылкой в соцсетях). Композер + отзывы на карточке аромата. Лайки (оптимистичные). «Feed» в хедере.
+- **Новинки (кураторские)**: +заметные реальные релизы 2023–2025 через `prisma/seed-new.mjs` (без фото, est.-цена).
 
 ## 🔜 Что дальше (приоритет сверху)
-1. **🫂 Соц-система** — лента активности друзей (`/feed`) + сравнение/**«битва полок»** (ты vs друг). *Следующий кандидат №1.*
-2. **💰 Цены фаза 2** — реальные цены поверх оценок для популярных (источник не выбран: декант-сайт per-ml / Playwright+ритейлер / аффилиат-фид).
-3. **🎮 Квизы** — «угадай парфюм» и др. интерактивы (см. IDEAS.md).
-4. **📸 Больше фото + полные новинки 2025-26** — нужен Playwright (у Parfumo JS-пагинация).
-5. **✨ Полиш** — баги, мобилка/адаптив, Google OAuth.
+1. **🔐 Google OAuth** — код готов (кнопка + callback), нужен ТОЛЬКО конфиг: Google Cloud OAuth client + включить провайдер Google в Supabase (Authentication → Providers). Задача пользователя (клики в дашбордах).
+2. **📸 Фото + новинки 2025-26 (ЗАБЛОКИРОВАНО)** — Parfumo сейчас жёстко банит IP (403 «Just a moment») и на страницах ароматов, и на гридах, и на поиске. Сбрасывается за несколько дней. Нужен **Playwright** (headless обходит Cloudflare) ИЛИ подождать сброса и снова гнать `scrape-images.mjs`/`scrape-new.mjs`. Фото сейчас ~4 700.
+3. **💰 Цены фаза 2** — реальные цены поверх оценок для популярных.
+4. **⚔️ Битва полок** — сравнение «ты vs друг» (общие/чего нет/у кого дороже).
+5. **🎮 Квизы** — «угадай парфюм» и др. (см. IDEAS.md).
+6. **✨ Полиш** — баги, мобилка/адаптив.
 
 ## ⚙️ Тех-заметки (важно для продолжения)
 - **Секреты** в `/.env` (в .gitignore, НЕ в репо): DATABASE_URL (транзакц. пул :6543 ?pgbouncer=true), DIRECT_URL (session pool :5432), NEXT_PUBLIC_SUPABASE_URL/ANON_KEY. Те же ключи заведены в Vercel env.
@@ -39,4 +42,4 @@ Next.js 16 (App Router, TS, Turbopack) · Tailwind v4 · Prisma 6 · PostgreSQL 
 - **Parfumo анти-бот:** периодически Cloudflare (403 «Just a moment») при наплыве — скрейперы медленные, с авто-стопом. Картинки хотлинкятся с media.parfumo.com (не скачаны к себе).
 
 ## Схема данных (Prisma)
-User (+favoriteNotes), Brand, Fragrance (+retailPrice/retailVolume/priceEstimated/imageUrl/notes*), CollectionItem (+quantity/remainingPct), WishlistItem, Friendship (PENDING/ACCEPTED).
+User (+favoriteNotes), Brand, Fragrance (+retailPrice/retailVolume/priceEstimated/imageUrl/notes*), CollectionItem (+quantity/remainingPct), WishlistItem, Friendship (PENDING/ACCEPTED), **Post** (rating/body → user+fragrance), **PostLike** (unique user+post).
