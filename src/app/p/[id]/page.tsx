@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
-import { getPost } from "@/lib/posts";
-import { deletePost } from "@/app/actions/posts";
+import { getPost, getPostComments } from "@/lib/posts";
+import { deletePost, createComment, deleteComment } from "@/app/actions/posts";
 import { PostCard } from "@/components/post-card";
+import { timeAgo } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -54,6 +55,7 @@ export default async function PostPage({
   const post = await getPost(id, me?.id ?? null);
   if (!post) notFound();
 
+  const comments = await getPostComments(id);
   const mine = me?.handle === post.user.handle;
 
   return (
@@ -74,6 +76,72 @@ export default async function PostPage({
             </button>
           </form>
         )}
+
+        {/* Comments */}
+        <div className="mt-8">
+          <h2 className="font-display text-lg font-semibold">
+            Comments
+            {comments.length > 0 && (
+              <span className="ml-2 text-sm font-normal text-neutral-500">
+                {comments.length}
+              </span>
+            )}
+          </h2>
+
+          {me ? (
+            <form action={createComment} className="mt-4 flex gap-2">
+              <input type="hidden" name="postId" value={post.id} />
+              <input
+                name="body"
+                required
+                maxLength={1000}
+                placeholder="Add a comment…"
+                className="flex-1 rounded-full border border-white/10 bg-neutral-950/50 px-4 py-2.5 text-sm text-neutral-100 placeholder:text-neutral-600 focus:border-amber-400/40 focus:outline-none"
+              />
+              <button className="rounded-full bg-neutral-100 px-5 py-2.5 text-sm font-semibold text-neutral-900 transition hover:bg-white">
+                Send
+              </button>
+            </form>
+          ) : (
+            <p className="mt-3 text-sm text-neutral-500">
+              <Link href="/login" className="text-amber-300 hover:text-amber-200">
+                Sign in
+              </Link>{" "}
+              to comment.
+            </p>
+          )}
+
+          <div className="mt-5 flex flex-col gap-4">
+            {comments.map((c) => (
+              <div key={c.id} className="flex gap-3">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-amber-300/30 to-amber-500/10 text-xs font-semibold text-amber-200">
+                  {(c.user.name || c.user.handle).trim().charAt(0).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline gap-2">
+                    <Link
+                      href={`/u/${c.user.handle}`}
+                      className="text-sm font-semibold text-neutral-100 hover:text-white"
+                    >
+                      {c.user.name ?? `@${c.user.handle}`}
+                    </Link>
+                    <span className="text-xs text-neutral-600">{timeAgo(c.createdAt)}</span>
+                    {me?.id === c.userId && (
+                      <form action={deleteComment.bind(null, c.id)} className="ml-auto">
+                        <button className="text-xs text-neutral-700 transition hover:text-rose-400">
+                          delete
+                        </button>
+                      </form>
+                    )}
+                  </div>
+                  <p className="mt-0.5 whitespace-pre-wrap text-[15px] text-neutral-200">
+                    {c.body}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
         {!me && (
           <div className="mt-8 rounded-3xl border border-white/10 bg-white/[0.02] p-6 text-center">

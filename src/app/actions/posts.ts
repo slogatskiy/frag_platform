@@ -48,6 +48,37 @@ export async function deletePost(postId: string) {
   revalidatePath("/feed");
 }
 
+// Комментарий к посту.
+export async function createComment(formData: FormData) {
+  const me = await getCurrentUser();
+  if (!me) redirect("/login");
+
+  const postId = String(formData.get("postId") ?? "");
+  const body = String(formData.get("body") ?? "").trim().slice(0, 1000);
+  if (!postId || !body) return;
+
+  const post = await prisma.post.findUnique({ where: { id: postId }, select: { id: true } });
+  if (!post) return;
+
+  await prisma.comment.create({ data: { postId, userId: me.id, body } });
+  revalidatePath(`/p/${postId}`);
+  revalidatePath("/feed");
+}
+
+export async function deleteComment(commentId: string) {
+  const me = await getCurrentUser();
+  if (!me) redirect("/login");
+
+  const c = await prisma.comment.findUnique({
+    where: { id: commentId },
+    select: { postId: true, userId: true },
+  });
+  if (!c || c.userId !== me.id) return;
+
+  await prisma.comment.delete({ where: { id: commentId } });
+  revalidatePath(`/p/${c.postId}`);
+}
+
 // Лайк/анлайк поста (тоггл).
 export async function toggleLike(postId: string) {
   const me = await getCurrentUser();

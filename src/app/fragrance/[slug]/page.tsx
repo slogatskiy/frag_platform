@@ -5,7 +5,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { fmtUsd } from "@/lib/valuation";
 import { addToCollection } from "@/app/actions/collection";
 import { addToWishlist, removeFromWishlist } from "@/app/actions/wishlist";
-import { BottleThumb } from "@/components/bottle-thumb";
+import { FragranceImage } from "@/components/fragrance-image";
 import { PostComposer } from "@/components/post-composer";
 import { PostCard } from "@/components/post-card";
 import { getFragrancePosts } from "@/lib/posts";
@@ -122,7 +122,8 @@ export default async function FragrancePage({
           {/* Photo */}
           <div>
             <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.02] p-6">
-              <BottleThumb
+              <FragranceImage
+                fragranceId={f.id}
                 imageUrl={f.imageUrl}
                 brand={f.brand.name}
                 className="mx-auto aspect-[3/4] w-full max-w-xs"

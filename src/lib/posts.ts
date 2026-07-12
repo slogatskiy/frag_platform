@@ -11,7 +11,7 @@ const cardInclude = (meId: string | null) => ({
       brand: { select: { name: true } },
     },
   },
-  _count: { select: { likes: true } },
+  _count: { select: { likes: true, comments: true } },
   likes: meId
     ? { where: { userId: meId }, select: { id: true } }
     : { where: { userId: "" }, select: { id: true } },
@@ -30,7 +30,7 @@ type RawPost = {
     imageUrl: string | null;
     brand: { name: string };
   };
-  _count: { likes: number };
+  _count: { likes: number; comments: number };
   likes: { id: string }[];
 };
 
@@ -45,7 +45,17 @@ function toCard(p: RawPost): PostCardData {
     fragrance: p.fragrance,
     likeCount: p._count.likes,
     likedByMe: p.likes.length > 0,
+    commentCount: p._count.comments,
   };
+}
+
+// Комментарии поста (старые сверху).
+export async function getPostComments(postId: string) {
+  return prisma.comment.findMany({
+    where: { postId },
+    orderBy: { createdAt: "asc" },
+    include: { user: { select: { handle: true, name: true } } },
+  });
 }
 
 // Лента: посты пользователя и его друзей (свежие сверху).

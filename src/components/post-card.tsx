@@ -19,6 +19,7 @@ export type PostCardData = {
   };
   likeCount: number;
   likedByMe: boolean;
+  commentCount: number;
 };
 
 function Avatar({ name, handle }: { name: string | null; handle: string }) {
@@ -96,6 +97,14 @@ export function PostCard({ post }: { post: PostCardData }) {
           initialLiked={post.likedByMe}
           initialCount={post.likeCount}
         />
+        <Link
+          href={`/p/${post.id}`}
+          className="inline-flex items-center gap-1.5 rounded-full border border-white/10 px-3 py-1.5 text-sm text-neutral-400 transition hover:border-white/25 hover:text-neutral-200"
+        >
+          <span>💬</span>
+          {post.commentCount > 0 && <span>{post.commentCount}</span>}
+          <span className="text-neutral-500">Comment</span>
+        </Link>
         <Link
           href={`/p/${post.id}`}
           className="rounded-full border border-white/10 px-3 py-1.5 text-sm text-neutral-400 transition hover:border-white/25 hover:text-neutral-200"

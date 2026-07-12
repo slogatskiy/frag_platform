@@ -26,6 +26,7 @@ model User {
   wishlist   WishlistItem[]
   posts      Post[]
   postLikes  PostLike[]
+  comments   Comment[]
 
   sentRequests     Friendship[] @relation("requester")
   receivedRequests Friendship[] @relation("addressee")
@@ -43,11 +44,25 @@ model Post {
   imageUrl    String? // пользовательское фото (Supabase Storage)
   createdAt   DateTime  @default(now())
 
-  likes PostLike[]
+  likes    PostLike[]
+  comments Comment[]
 
   @@index([userId])
   @@index([fragranceId])
   @@index([createdAt])
+}
+
+// --- Комментарий к посту ---
+model Comment {
+  id        String   @id @default(uuid())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([postId])
 }
 
 // --- Лайк поста ---
@@ -110,6 +125,7 @@ model Fragrance {
   notesHeart    String[] // ноты сердца
   notesBase     String[] // базовые ноты
   imageUrl      String?
+  sourceUrl     String? // URL страницы-источника (Parfumo) для on-demand дозагрузки фото
   externalIds   Json? // ссылки на источники (parfumo/fragrantica и т.п.)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
