@@ -14,9 +14,15 @@ export async function createPost(formData: FormData) {
   const body = String(formData.get("body") ?? "").trim().slice(0, 2000);
   const ratingRaw = String(formData.get("rating") ?? "").trim();
   const rating = ratingRaw ? Math.max(1, Math.min(10, parseInt(ratingRaw, 10))) : null;
+  const imageRaw = String(formData.get("imageUrl") ?? "").trim();
+  // Принимаем только ссылку на наш Supabase Storage-бакет
+  const imageUrl =
+    imageRaw && imageRaw.includes("/storage/v1/object/public/post-images/")
+      ? imageRaw
+      : null;
 
   if (!fragranceId) return;
-  if (!body && rating == null) return; // пустой пост не создаём
+  if (!body && rating == null && !imageUrl) return; // пустой пост не создаём
 
   const frag = await prisma.fragrance.findUnique({
     where: { id: fragranceId },
@@ -25,7 +31,7 @@ export async function createPost(formData: FormData) {
   if (!frag) return;
 
   const post = await prisma.post.create({
-    data: { userId: me.id, fragranceId, body, rating },
+    data: { userId: me.id, fragranceId, body, rating, imageUrl },
   });
 
   revalidatePath("/feed");

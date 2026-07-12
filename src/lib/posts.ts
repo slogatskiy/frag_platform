@@ -22,6 +22,7 @@ type RawPost = {
   createdAt: Date;
   rating: number | null;
   body: string;
+  imageUrl: string | null;
   user: { handle: string; name: string | null; avatarUrl: string | null };
   fragrance: {
     slug: string;
@@ -39,6 +40,7 @@ function toCard(p: RawPost): PostCardData {
     createdAt: p.createdAt,
     rating: p.rating,
     body: p.body,
+    imageUrl: p.imageUrl,
     user: p.user,
     fragrance: p.fragrance,
     likeCount: p._count.likes,

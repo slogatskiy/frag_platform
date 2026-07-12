@@ -23,6 +23,8 @@ export async function generateMetadata({
   const description =
     post.body?.slice(0, 200) ||
     `${post.fragrance.brand.name} — ${post.fragrance.name} on Frag`;
+  // Фото поста в приоритете над фото флакона
+  const ogImage = post.imageUrl ?? post.fragrance.imageUrl;
 
   return {
     title: `${title} — Frag`,
@@ -31,13 +33,13 @@ export async function generateMetadata({
       title,
       description,
       type: "article",
-      images: post.fragrance.imageUrl ? [{ url: post.fragrance.imageUrl }] : undefined,
+      images: ogImage ? [{ url: ogImage }] : undefined,
     },
     twitter: {
-      card: post.fragrance.imageUrl ? "summary_large_image" : "summary",
+      card: ogImage ? "summary_large_image" : "summary",
       title,
       description,
-      images: post.fragrance.imageUrl ? [post.fragrance.imageUrl] : undefined,
+      images: ogImage ? [ogImage] : undefined,
     },
   };
 }

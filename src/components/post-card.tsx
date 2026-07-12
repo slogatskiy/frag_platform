@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { BottleThumb } from "@/components/bottle-thumb";
 import { LikeButton } from "@/components/like-button";
@@ -8,6 +9,7 @@ export type PostCardData = {
   createdAt: Date;
   rating: number | null;
   body: string;
+  imageUrl: string | null;
   user: { handle: string; name: string | null; avatarUrl: string | null };
   fragrance: {
     slug: string;
@@ -72,6 +74,14 @@ export function PostCard({ post }: { post: PostCardData }) {
           )}
         </div>
       </Link>
+
+      {post.imageUrl && (
+        <img
+          src={post.imageUrl}
+          alt={post.fragrance.name}
+          className="mt-3 max-h-[32rem] w-full rounded-2xl border border-white/10 object-cover"
+        />
+      )}
 
       {post.body && (
         <p className="mt-3 whitespace-pre-wrap text-[15px] leading-relaxed text-neutral-200">
