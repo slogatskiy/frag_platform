@@ -6,6 +6,8 @@ import { getFeedPosts } from "@/lib/posts";
 import { prisma } from "@/lib/prisma";
 import { PostCard } from "@/components/post-card";
 import { BottleThumb } from "@/components/bottle-thumb";
+import { NewsCard } from "@/components/news-card";
+import { getRecentNews } from "@/lib/news";
 import { timeAgo } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -50,7 +52,7 @@ export default async function FeedPage() {
   const friendIds = await getFriendIds(me.id);
   const authorIds = [me.id, ...friendIds];
 
-  const [posts, collects, wishes] = await Promise.all([
+  const [posts, collects, wishes, news] = await Promise.all([
     getFeedPosts(me.id, friendIds),
     prisma.collectionItem.findMany({
       where: { userId: { in: authorIds } },
@@ -70,6 +72,7 @@ export default async function FeedPage() {
         fragrance: { select: { slug: true, name: true, imageUrl: true, brand: { select: { name: true } } } },
       },
     }),
+    getRecentNews(15),
   ]);
 
   const activity: Activity[] = [
@@ -85,6 +88,11 @@ export default async function FeedPage() {
       t: a.createdAt.getTime(),
       key: `a-${a.kind}-${i}-${a.createdAt.getTime()}`,
       node: <ActivityLine a={a} />,
+    })),
+    ...news.map((n) => ({
+      t: n.publishedAt.getTime(),
+      key: `n-${n.id}`,
+      node: <NewsCard item={n} />,
     })),
   ].sort((x, y) => y.t - x.t);
 

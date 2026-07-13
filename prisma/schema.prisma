@@ -57,6 +57,20 @@ enum BattleStatus {
   DONE
 }
 
+// --- Новость мира парфюмерии (из RSS парфюм-блогов) ---
+model NewsItem {
+  id          String   @id @default(uuid())
+  title       String
+  url         String   @unique
+  source      String // напр. "Now Smell This"
+  summary     String   @db.Text
+  imageUrl    String?
+  publishedAt DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([publishedAt])
+}
+
 // --- Пост (впечатление/отзыв об аромате) — шаримая соц-единица ---
 model Post {
   id          String    @id @default(uuid())
