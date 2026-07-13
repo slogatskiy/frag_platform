@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { removeFromCollection, changeQuantity } from "@/app/actions/collection";
 import { BottleThumb } from "@/components/bottle-thumb";
+import { costPerWear, fmtCostPerWear } from "@/lib/valuation";
 
 export const dynamic = "force-dynamic";
 
@@ -186,6 +187,15 @@ export default async function ShelfPage({
                       style={{ width: `${it.remainingPct}%` }}
                     />
                   </div>
+
+                  {(() => {
+                    const cpw = costPerWear(retail, it.volumeMl ?? it.fragrance.retailVolume);
+                    return cpw != null ? (
+                      <div className="mt-3 text-xs text-neutral-500">
+                        ≈ <span className="text-amber-200/90">{fmtCostPerWear(cpw)}</span> per wear
+                      </div>
+                    ) : null;
+                  })()}
 
                   <div className="mt-4 flex items-center justify-between">
                     <div>

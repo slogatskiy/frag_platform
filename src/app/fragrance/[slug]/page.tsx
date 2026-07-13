@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
-import { fmtUsd } from "@/lib/valuation";
+import { fmtUsd, costPerWear, fmtCostPerWear } from "@/lib/valuation";
 import { addToCollection } from "@/app/actions/collection";
 import { addToWishlist, removeFromWishlist } from "@/app/actions/wishlist";
 import { FragranceImage } from "@/components/fragrance-image";
@@ -106,6 +106,7 @@ export default async function FragrancePage({
   const posts = await getFragrancePosts(f.id, me?.id ?? null);
 
   const retail = f.retailPrice ? Number(f.retailPrice) : null;
+  const cpw = costPerWear(retail, f.retailVolume);
   const wished = !!myWish;
 
   return (
@@ -155,6 +156,18 @@ export default async function FragrancePage({
                 </span>
               )}
             </div>
+
+            {cpw != null && (
+              <div className="mt-3 inline-flex items-baseline gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm">
+                <span className="font-semibold text-amber-200">
+                  {fmtCostPerWear(cpw)}
+                </span>
+                <span className="text-neutral-500">per wear</span>
+                <span className="text-xs text-neutral-600">
+                  · ~{f.retailVolume}ml, est.
+                </span>
+              </div>
+            )}
 
             {ownersCount.length > 0 && (
               <div className="mt-3 text-sm text-neutral-500">

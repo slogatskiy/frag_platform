@@ -51,6 +51,26 @@ export default async function FriendsPage({
   );
   friends.sort((a, b) => b.totalValue - a.totalValue);
 
+  // Лидерборд: ты + друзья, по стоимости полки.
+  const myValue = await getCollectionWithValue(me.id);
+  const leaderboard = [
+    {
+      handle: me.handle,
+      name: me.name,
+      totalValue: myValue.totalValue,
+      totalBottles: myValue.totalBottles,
+      isMe: true,
+    },
+    ...friends.map((f) => ({
+      handle: f.user.handle,
+      name: f.user.name,
+      totalValue: f.totalValue,
+      totalBottles: f.totalBottles,
+      isMe: false,
+    })),
+  ].sort((a, b) => b.totalValue - a.totalValue);
+  const medal = (i: number) => (i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`);
+
   // Поиск людей.
   const relatedIds = new Set(friendships.flatMap((f) => [f.requesterId, f.addresseeId]));
   const found = q
@@ -76,6 +96,47 @@ export default async function FriendsPage({
         <h1 className="font-display text-4xl font-semibold tracking-tight">
           Friends
         </h1>
+
+        {/* Leaderboard */}
+        {leaderboard.length >= 2 && (
+          <section className="mt-8">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
+              🏆 Shelf leaderboard
+            </h2>
+            <div className="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
+              {leaderboard.map((row, i) => (
+                <Link
+                  key={row.handle}
+                  href={row.isMe ? "/shelf" : `/u/${row.handle}`}
+                  className={`flex items-center gap-4 border-b border-white/5 px-5 py-3.5 transition last:border-0 hover:bg-white/[0.03] ${
+                    row.isMe ? "bg-amber-400/[0.06]" : ""
+                  }`}
+                >
+                  <div className="w-8 shrink-0 text-center font-display text-lg">
+                    {medal(i)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium">
+                      {row.name ?? `@${row.handle}`}
+                      {row.isMe && (
+                        <span className="ml-2 text-xs font-normal text-amber-300/80">
+                          you
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-neutral-500">
+                      @{row.handle} · {row.totalBottles} bottle
+                      {row.totalBottles === 1 ? "" : "s"}
+                    </div>
+                  </div>
+                  <div className="font-display text-lg font-semibold tabular-nums">
+                    {fmtUsd(row.totalValue)}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Find people */}
         <form className="mt-8" action="/friends">
