@@ -3,26 +3,27 @@
 /* eslint-disable @next/next/no-img-element */
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import type { QuizQuestion as Q } from "@/lib/quiz";
 
-type Q = {
-  id: string;
-  type: "brand" | "note" | "price";
-  prompt: string;
-  media: { img: string; label: string; slug: string }[];
-  options: string[];
-  correct: number;
-};
-
-export function QuizGame() {
-  const [questions, setQuestions] = useState<Q[] | null>(null);
+export function QuizGame({
+  fixedQuestions,
+  onComplete,
+}: {
+  fixedQuestions?: Q[];
+  onComplete?: (score: number, total: number) => void;
+} = {}) {
+  const battleMode = !!fixedQuestions;
+  const [questions, setQuestions] = useState<Q[] | null>(fixedQuestions ?? null);
   const [i, setI] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
   const [best, setBest] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!fixedQuestions);
+  const [reported, setReported] = useState(false);
 
   const load = useCallback(async () => {
+    if (fixedQuestions) return;
     setLoading(true);
     setQuestions(null);
     setI(0);
@@ -39,11 +40,19 @@ export function QuizGame() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fixedQuestions]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    if (!fixedQuestions) load();
+  }, [load, fixedQuestions]);
+
+  // Battle mode: сообщить счёт по завершении (один раз).
+  useEffect(() => {
+    if (battleMode && questions && i >= questions.length && !reported) {
+      setReported(true);
+      onComplete?.(score, questions.length);
+    }
+  }, [battleMode, questions, i, reported, score, onComplete]);
 
   if (loading || !questions) {
     return <div className="py-20 text-center text-neutral-500">Loading quiz…</div>;
@@ -60,6 +69,19 @@ export function QuizGame() {
   }
 
   const done = i >= questions.length;
+
+  if (done && battleMode) {
+    return (
+      <div className="mx-auto max-w-md rounded-3xl border border-white/10 bg-white/[0.02] p-10 text-center">
+        <div className="text-sm uppercase tracking-wide text-neutral-500">You scored</div>
+        <div className="mt-2 font-display text-6xl font-semibold text-amber-300">
+          {score}
+          <span className="text-2xl text-neutral-600">/{questions.length}</span>
+        </div>
+        <div className="mt-3 text-neutral-400">Saving your battle result…</div>
+      </div>
+    );
+  }
 
   if (done) {
     const pct = Math.round((score / questions.length) * 100);

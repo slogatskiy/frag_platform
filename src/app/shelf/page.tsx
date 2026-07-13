@@ -173,19 +173,12 @@ export default async function ShelfPage({
                       >
                         {it.fragrance.name}
                       </Link>
-                      <div className="mt-1 text-sm text-neutral-500">
-                        {it.volumeMl ? `${it.volumeMl} ml` : "—"} ·{" "}
-                        {it.remainingPct}% left
-                      </div>
+                      {it.volumeMl && (
+                        <div className="mt-1 text-sm text-neutral-500">
+                          {it.volumeMl} ml
+                        </div>
+                      )}
                     </div>
-                  </div>
-
-                  {/* remaining bar */}
-                  <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
-                    <div
-                      className="h-full rounded-full bg-amber-400/80"
-                      style={{ width: `${it.remainingPct}%` }}
-                    />
                   </div>
 
                   {(() => {

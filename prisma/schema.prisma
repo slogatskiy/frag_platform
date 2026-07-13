@@ -30,6 +30,31 @@ model User {
 
   sentRequests     Friendship[] @relation("requester")
   receivedRequests Friendship[] @relation("addressee")
+
+  battlesChallenged Battle[] @relation("battleChallenger")
+  battlesReceived   Battle[] @relation("battleOpponent")
+}
+
+// --- Баттл: квиз-дуэль с другом на одинаковых вопросах ---
+model Battle {
+  id             String       @id @default(uuid())
+  challenger     User         @relation("battleChallenger", fields: [challengerId], references: [id], onDelete: Cascade)
+  challengerId   String
+  opponent       User         @relation("battleOpponent", fields: [opponentId], references: [id], onDelete: Cascade)
+  opponentId     String
+  questions      Json // массив вопросов (с правильными ответами)
+  challengerScore Int? // счёт того, кто бросил вызов (ставится при создании)
+  opponentScore  Int? // счёт оппонента (null, пока не сыграл)
+  status         BattleStatus @default(PENDING)
+  createdAt      DateTime     @default(now())
+
+  @@index([opponentId])
+  @@index([challengerId])
+}
+
+enum BattleStatus {
+  PENDING // оппонент ещё не сыграл
+  DONE
 }
 
 // --- Пост (впечатление/отзыв об аромате) — шаримая соц-единица ---
@@ -125,6 +150,7 @@ model Fragrance {
   notesHeart    String[] // ноты сердца
   notesBase     String[] // базовые ноты
   imageUrl      String?
+  popularity    Int            @default(0) // число оценок из датасета (для «популярных» в квизе/каталоге)
   sourceUrl     String? // URL страницы-источника (Parfumo) для on-demand дозагрузки фото
   externalIds   Json? // ссылки на источники (parfumo/fragrantica и т.п.)
   createdAt     DateTime       @default(now())

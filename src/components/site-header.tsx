@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { signOut } from "@/app/actions/collection";
 
 export async function SiteHeader() {
@@ -8,6 +9,23 @@ export async function SiteHeader() {
     user = await getCurrentUser();
   } catch {
     user = null;
+  }
+
+  // Сколько баттлов ждут моего хода
+  let battleTurns = 0;
+  if (user) {
+    try {
+      battleTurns = await prisma.battle.count({
+        where: {
+          OR: [
+            { opponentId: user.id, opponentScore: null },
+            { challengerId: user.id, challengerScore: null },
+          ],
+        },
+      });
+    } catch {
+      battleTurns = 0;
+    }
   }
 
   return (
@@ -34,6 +52,14 @@ export async function SiteHeader() {
             <>
               <Link href="/feed" className="transition hover:text-neutral-100">
                 Feed
+              </Link>
+              <Link href="/battles" className="relative transition hover:text-neutral-100">
+                Battles
+                {battleTurns > 0 && (
+                  <span className="absolute -right-3 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-400 px-1 text-[10px] font-bold text-neutral-900">
+                    {battleTurns}
+                  </span>
+                )}
               </Link>
               <Link href="/shelf" className="transition hover:text-neutral-100">
                 My Shelf
