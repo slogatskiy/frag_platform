@@ -18,6 +18,7 @@ model User {
   email     String   @unique
   name          String?
   avatarUrl     String?
+  bio           String?  // короткое описание профиля
   favoriteNotes String[] @default([]) // любимые ноты для подбора
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -27,6 +28,7 @@ model User {
   posts      Post[]
   postLikes  PostLike[]
   comments   Comment[]
+  wears      WearEntry[]
 
   sentRequests     Friendship[] @relation("requester")
   receivedRequests Friendship[] @relation("addressee")
@@ -173,9 +175,23 @@ model Fragrance {
   collectionItems CollectionItem[]
   wishlistItems   WishlistItem[]
   posts           Post[]
+  wears           WearEntry[]
 
   @@index([brandId])
   @@index([name])
+}
+
+// --- «Аромат дня» (SOTD): чем пользователь пахнет сегодня ---
+model WearEntry {
+  id          String    @id @default(uuid())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  fragrance   Fragrance @relation(fields: [fragranceId], references: [id])
+  fragranceId String
+  createdAt   DateTime  @default(now())
+
+  @@index([userId, createdAt])
+  @@index([createdAt])
 }
 
 // --- Позиция в коллекции пользователя ---

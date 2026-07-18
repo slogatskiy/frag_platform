@@ -8,6 +8,7 @@ import { addToWishlist, removeFromWishlist } from "@/app/actions/wishlist";
 import { FragranceImage } from "@/components/fragrance-image";
 import { PostComposer } from "@/components/post-composer";
 import { PostCard } from "@/components/post-card";
+import { WoreTodayButton } from "@/components/wore-today-button";
 import { getFragrancePosts } from "@/lib/posts";
 
 export const dynamic = "force-dynamic";
@@ -217,6 +218,7 @@ export default async function FragrancePage({
                   {wished ? "♥ Wishlisted" : "♡ Wishlist"}
                 </button>
               </form>
+              {me && <WoreTodayButton fragranceId={f.id} />}
             </div>
 
             {/* Notes */}

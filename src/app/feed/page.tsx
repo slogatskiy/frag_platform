@@ -14,10 +14,16 @@ import { timeAgo } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 type Activity = {
-  kind: "collect" | "wish";
+  kind: "collect" | "wish" | "wear";
   createdAt: Date;
   user: { handle: string; name: string | null; avatarUrl: string | null };
   fragrance: { slug: string; name: string; imageUrl: string | null; brand: { name: string } };
+};
+
+const ACTION_TEXT: Record<Activity["kind"], string> = {
+  collect: "added",
+  wish: "wants",
+  wear: "is wearing today",
 };
 
 function ActivityLine({ a }: { a: Activity }) {
@@ -38,7 +44,7 @@ function ActivityLine({ a }: { a: Activity }) {
         <Link href={`/u/${a.user.handle}`} className="font-semibold text-neutral-100 hover:text-white">
           {who}
         </Link>{" "}
-        <span className="text-neutral-400">{a.kind === "collect" ? "added" : "wants"}</span>{" "}
+        <span className="text-neutral-400">{ACTION_TEXT[a.kind]}</span>{" "}
         <Link href={`/fragrance/${a.fragrance.slug}`} className="text-amber-200 hover:text-amber-100">
           {a.fragrance.name}
         </Link>
@@ -56,7 +62,7 @@ export default async function FeedPage() {
   const friendIds = await getFriendIds(me.id);
   const authorIds = [me.id, ...friendIds];
 
-  const [posts, collects, wishes, news] = await Promise.all([
+  const [posts, collects, wishes, wears, news] = await Promise.all([
     getFeedPosts(me.id, friendIds),
     prisma.collectionItem.findMany({
       where: { userId: { in: authorIds } },
@@ -76,12 +82,22 @@ export default async function FeedPage() {
         fragrance: { select: { slug: true, name: true, imageUrl: true, brand: { select: { name: true } } } },
       },
     }),
+    prisma.wearEntry.findMany({
+      where: { userId: { in: authorIds } },
+      orderBy: { createdAt: "desc" },
+      take: 30,
+      include: {
+        user: { select: { handle: true, name: true, avatarUrl: true } },
+        fragrance: { select: { slug: true, name: true, imageUrl: true, brand: { select: { name: true } } } },
+      },
+    }),
     getRecentNews(15),
   ]);
 
   const activity: Activity[] = [
     ...collects.map((c) => ({ kind: "collect" as const, createdAt: c.createdAt, user: c.user, fragrance: c.fragrance })),
     ...wishes.map((w) => ({ kind: "wish" as const, createdAt: w.createdAt, user: w.user, fragrance: w.fragrance })),
+    ...wears.map((w) => ({ kind: "wear" as const, createdAt: w.createdAt, user: w.user, fragrance: w.fragrance })),
   ];
 
   // Единый таймлайн: посты (богатые) + активность (лёгкая), свежее сверху.

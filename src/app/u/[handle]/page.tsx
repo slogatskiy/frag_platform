@@ -4,8 +4,10 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { getCollectionWithValue, fmtUsd, itemValue } from "@/lib/valuation";
 import { relationTo } from "@/app/actions/friends";
+import { getTodaysWear } from "@/app/actions/wear";
 import { BottleThumb } from "@/components/bottle-thumb";
 import { Avatar } from "@/components/avatar";
+import { ProfileEditor } from "@/components/profile-editor";
 import { FriendButton } from "@/components/friend-button";
 
 export const dynamic = "force-dynamic";
@@ -32,6 +34,7 @@ export default async function PublicProfile({
   });
 
   const rel = me ? await relationTo(me.id, profile.id) : null;
+  const sotd = await getTodaysWear(profile.id);
 
   return (
     <main className="flex-1">
@@ -50,10 +53,23 @@ export default async function PublicProfile({
                 {profile.name ?? `@${profile.handle}`}
               </h1>
               <div className="text-sm text-neutral-500">@{profile.handle}</div>
+              {profile.bio && (
+                <p className="mt-2 max-w-md text-sm leading-relaxed text-neutral-300">
+                  {profile.bio}
+                </p>
+              )}
             </div>
           </div>
 
           <div className="flex items-center gap-3">
+            {isOwner && (
+              <ProfileEditor
+                handle={profile.handle}
+                initialName={profile.name}
+                initialBio={profile.bio}
+                initialAvatarUrl={profile.avatarUrl}
+              />
+            )}
             {rel && !isOwner && (
               <FriendButton profileId={profile.id} rel={rel} />
             )}
@@ -67,6 +83,29 @@ export default async function PublicProfile({
             )}
           </div>
         </div>
+
+        {/* Scent of the day */}
+        {sotd && (
+          <Link
+            href={`/fragrance/${sotd.fragrance.slug}`}
+            className="mt-6 flex items-center gap-4 rounded-3xl border border-amber-300/20 bg-gradient-to-br from-amber-500/[0.08] to-transparent px-5 py-4 transition hover:border-amber-300/40"
+          >
+            <BottleThumb
+              imageUrl={sotd.fragrance.imageUrl}
+              brand={sotd.fragrance.brand.name}
+              className="h-14 w-11 shrink-0"
+            />
+            <div className="min-w-0">
+              <div className="text-xs font-semibold uppercase tracking-[0.15em] text-amber-300/80">
+                🫧 Wearing today
+              </div>
+              <div className="mt-0.5 truncate font-display text-lg font-semibold">
+                {sotd.fragrance.name}
+              </div>
+              <div className="truncate text-sm text-neutral-500">{sotd.fragrance.brand.name}</div>
+            </div>
+          </Link>
+        )}
 
         {/* Valuation banner */}
         <div className="mt-8 flex flex-wrap items-center gap-8 rounded-3xl border border-white/10 bg-gradient-to-br from-amber-500/[0.06] to-fuchsia-500/[0.04] px-8 py-6">
