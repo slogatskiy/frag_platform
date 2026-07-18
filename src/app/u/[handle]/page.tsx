@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getCollectionWithValue, fmtUsd, itemValue } from "@/lib/valuation";
 import { relationTo } from "@/app/actions/friends";
 import { BottleThumb } from "@/components/bottle-thumb";
+import { Avatar } from "@/components/avatar";
 import { FriendButton } from "@/components/friend-button";
 
 export const dynamic = "force-dynamic";
@@ -38,9 +39,12 @@ export default async function PublicProfile({
         {/* Profile header */}
         <div className="flex flex-wrap items-start justify-between gap-6">
           <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-gradient-to-b from-white/10 to-transparent font-display text-2xl">
-              {(profile.name ?? profile.handle).charAt(0).toUpperCase()}
-            </div>
+            <Avatar
+              name={profile.name}
+              handle={profile.handle}
+              avatarUrl={profile.avatarUrl}
+              size="xl"
+            />
             <div>
               <h1 className="font-display text-3xl font-semibold tracking-tight">
                 {profile.name ?? `@${profile.handle}`}

@@ -148,10 +148,22 @@ export default async function FragrancePage({
               {f.concentration && f.releaseYear ? " · " : ""}
               {f.releaseYear ?? ""}
               {retail != null && (
-                <span className="ml-2 text-neutral-300">
-                  · ~{fmtUsd(retail)}
-                  {f.priceEstimated && (
-                    <span className="ml-1 text-xs text-neutral-600">est.</span>
+                <span className="ml-2 inline-flex items-center gap-1.5 align-middle text-neutral-300">
+                  · {f.priceEstimated ? "~" : ""}{fmtUsd(retail)}
+                  {f.priceEstimated ? (
+                    <span
+                      title="Estimated from brand tier & concentration — not a confirmed retail price"
+                      className="rounded-full border border-white/10 bg-white/[0.03] px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-neutral-500"
+                    >
+                      est.
+                    </span>
+                  ) : (
+                    <span
+                      title="Confirmed retail price (MSRP)"
+                      className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-emerald-300/90"
+                    >
+                      ✓ retail
+                    </span>
                   )}
                 </span>
               )}

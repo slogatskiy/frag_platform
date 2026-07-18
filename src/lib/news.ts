@@ -25,9 +25,28 @@ const stripHtml = (s: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
-const firstImage = (html: string): string | null => {
-  const m = html.match(/<img[^>]+src=["']([^"']+)["']/i);
-  return m ? m[1] : null;
+// Мусорные картинки, которые нельзя ставить обложкой: аватары/гравотары,
+// эмодзи, трекинг-пиксели, иконки плагинов/шаринга, svg, feedburner.
+const BAD_IMAGE =
+  /(gravatar|avatar|\/emoji\/|s\.w\.org|feedburner|feedburner|\/plugins\/|sharedaddy|twemoji|1x1|spacer|pixel|blank\.gif|doubleclick|stat\?|\.svg(\?|$)|badge|button)/i;
+
+// Апгрейд до полного размера: срезаем WP-суффикс -150x150 и resize-параметры.
+const upsizeImage = (u: string): string =>
+  u
+    .replace(/-\d{2,4}x\d{2,4}(\.(?:jpe?g|png|webp|gif))/i, "$1")
+    .replace(/([?&])(?:w|h|resize|fit|crop|quality|strip)=[^&]*/gi, "$1")
+    .replace(/[?&]+$/, "");
+
+// Берём ПЕРВУЮ пригодную картинку (не мусор), апскейлим.
+const pickImage = (html: string): string | null => {
+  const matches = html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi);
+  for (const m of matches) {
+    const raw = m[1];
+    if (!raw || raw.startsWith("data:")) continue;
+    if (BAD_IMAGE.test(raw)) continue;
+    return upsizeImage(raw);
+  }
+  return null;
 };
 
 const asText = (v: unknown): string =>
@@ -62,7 +81,7 @@ async function fetchSource(source: { name: string; url: string }) {
     if (isNaN(publishedAt.getTime())) continue;
     const contentHtml = asText(it["content:encoded"]) || asText(it.description);
     const summary = stripHtml(asText(it.description)).slice(0, 260);
-    const imageUrl = firstImage(contentHtml);
+    const imageUrl = pickImage(contentHtml);
     out.push({ title, url, source: source.name, summary, imageUrl, publishedAt });
   }
   return out;
@@ -84,7 +103,9 @@ export async function ingestNews(): Promise<{ added: number; total: number }> {
       try {
         const r = await prisma.newsItem.upsert({
           where: { url: it.url },
-          update: {}, // не перезаписываем существующие
+          // обновляем картинку/саммари (логика извлечения улучшилась) —
+          // заголовок/дату/источник не трогаем.
+          update: { imageUrl: it.imageUrl, summary: it.summary },
           create: it,
         });
         // upsert не говорит, создал ли; считаем «новыми» по свежести создания

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { getCollectionWithValue, fmtUsd } from "@/lib/valuation";
+import { Avatar } from "@/components/avatar";
 import {
   acceptFriendRequest,
   removeFriendship,
@@ -57,6 +58,7 @@ export default async function FriendsPage({
     {
       handle: me.handle,
       name: me.name,
+      avatarUrl: me.avatarUrl,
       totalValue: myValue.totalValue,
       totalBottles: myValue.totalBottles,
       isMe: true,
@@ -64,12 +66,14 @@ export default async function FriendsPage({
     ...friends.map((f) => ({
       handle: f.user.handle,
       name: f.user.name,
+      avatarUrl: f.user.avatarUrl,
       totalValue: f.totalValue,
       totalBottles: f.totalBottles,
       isMe: false,
     })),
   ].sort((a, b) => b.totalValue - a.totalValue);
   const medal = (i: number) => (i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`);
+  const topValue = Math.max(1, ...leaderboard.map((r) => r.totalValue));
 
   // Поиск людей.
   const relatedIds = new Set(friendships.flatMap((f) => [f.requesterId, f.addresseeId]));
@@ -103,28 +107,45 @@ export default async function FriendsPage({
             <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
               🏆 Shelf leaderboard
             </h2>
-            <div className="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
+            <div className="mt-4 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.04] to-white/[0.01]">
               {leaderboard.map((row, i) => (
                 <Link
                   key={row.handle}
                   href={row.isMe ? "/shelf" : `/u/${row.handle}`}
-                  className={`flex items-center gap-4 border-b border-white/5 px-5 py-3.5 transition last:border-0 hover:bg-white/[0.03] ${
+                  className={`relative flex items-center gap-4 border-b border-white/5 px-5 py-4 transition last:border-0 hover:bg-white/[0.04] ${
                     row.isMe ? "bg-amber-400/[0.06]" : ""
                   }`}
                 >
-                  <div className="w-8 shrink-0 text-center font-display text-lg">
+                  <div
+                    className={`w-9 shrink-0 text-center font-display ${
+                      i < 3 ? "text-2xl" : "text-base text-neutral-500"
+                    }`}
+                  >
                     {medal(i)}
                   </div>
+                  <Avatar
+                    name={row.name}
+                    handle={row.handle}
+                    avatarUrl={row.avatarUrl}
+                    size="md"
+                  />
                   <div className="min-w-0 flex-1">
-                    <div className="font-medium">
-                      {row.name ?? `@${row.handle}`}
+                    <div className="flex items-center gap-2 font-medium">
+                      <span className="truncate">{row.name ?? `@${row.handle}`}</span>
                       {row.isMe && (
-                        <span className="ml-2 text-xs font-normal text-amber-300/80">
+                        <span className="rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
                           you
                         </span>
                       )}
                     </div>
-                    <div className="text-xs text-neutral-500">
+                    {/* Полоска стоимости — сразу видно расстановку сил */}
+                    <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-white/5">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-amber-400/70 to-amber-300"
+                        style={{ width: `${(row.totalValue / topValue) * 100}%` }}
+                      />
+                    </div>
+                    <div className="mt-1 text-xs text-neutral-500">
                       @{row.handle} · {row.totalBottles} bottle
                       {row.totalBottles === 1 ? "" : "s"}
                     </div>
@@ -156,9 +177,12 @@ export default async function FriendsPage({
                 key={u.id}
                 className="flex items-center justify-between rounded-xl border border-white/8 bg-white/[0.02] px-4 py-3"
               >
-                <Link href={`/u/${u.handle}`} className="hover:underline">
-                  <span className="font-medium">{u.name ?? u.handle}</span>{" "}
-                  <span className="text-neutral-500">@{u.handle}</span>
+                <Link href={`/u/${u.handle}`} className="flex items-center gap-3 hover:underline">
+                  <Avatar name={u.name} handle={u.handle} avatarUrl={u.avatarUrl} size="sm" />
+                  <span>
+                    <span className="font-medium">{u.name ?? u.handle}</span>{" "}
+                    <span className="text-neutral-500">@{u.handle}</span>
+                  </span>
                 </Link>
                 {!relatedIds.has(u.id) && (
                   <form
@@ -191,9 +215,12 @@ export default async function FriendsPage({
                     key={f.id}
                     className="flex items-center justify-between rounded-xl border border-white/8 bg-white/[0.02] px-4 py-3"
                   >
-                    <Link href={`/u/${u.handle}`} className="hover:underline">
-                      <span className="font-medium">{u.name ?? u.handle}</span>{" "}
-                      <span className="text-neutral-500">@{u.handle}</span>
+                    <Link href={`/u/${u.handle}`} className="flex items-center gap-3 hover:underline">
+                      <Avatar name={u.name} handle={u.handle} avatarUrl={u.avatarUrl} size="sm" />
+                      <span>
+                        <span className="font-medium">{u.name ?? u.handle}</span>{" "}
+                        <span className="text-neutral-500">@{u.handle}</span>
+                      </span>
                     </Link>
                     <div className="flex items-center gap-2">
                       <form
@@ -242,9 +269,12 @@ export default async function FriendsPage({
                   className="flex items-center justify-between rounded-xl border border-white/8 bg-white/[0.02] px-5 py-4 transition hover:border-white/20"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 font-display">
-                      {(user.name ?? user.handle).charAt(0).toUpperCase()}
-                    </div>
+                    <Avatar
+                      name={user.name}
+                      handle={user.handle}
+                      avatarUrl={user.avatarUrl}
+                      size="md"
+                    />
                     <div>
                       <div className="font-medium">{user.name ?? user.handle}</div>
                       <div className="text-xs text-neutral-500">

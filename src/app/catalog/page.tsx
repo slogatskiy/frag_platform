@@ -199,8 +199,13 @@ export default async function CatalogPage({
                       {f.releaseYear ? ` · ${f.releaseYear}` : ""}
                     </span>
                     {f.retailPrice != null && (
-                      <span className="font-medium text-neutral-300">
-                        ~${Number(f.retailPrice).toFixed(0)}
+                      <span
+                        className={`font-medium ${
+                          f.priceEstimated ? "text-neutral-400" : "text-emerald-300/90"
+                        }`}
+                        title={f.priceEstimated ? "Estimated price" : "Confirmed retail price"}
+                      >
+                        {f.priceEstimated ? "~" : ""}${Number(f.retailPrice).toFixed(0)}
                       </span>
                     )}
                   </div>

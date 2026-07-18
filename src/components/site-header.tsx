@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { Avatar } from "@/components/avatar";
 import { signOut } from "@/app/actions/collection";
 
 export async function SiteHeader() {
@@ -84,6 +85,9 @@ export async function SiteHeader() {
               className="rounded-full bg-neutral-100 px-4 py-2 text-sm font-semibold text-neutral-900 transition hover:bg-white"
             >
               My Shelf
+            </Link>
+            <Link href={`/u/${user.handle}`} title="Your profile" className="transition hover:opacity-80">
+              <Avatar name={user.name} handle={user.handle} avatarUrl={user.avatarUrl} size="sm" />
             </Link>
             <form action={signOut}>
               <button className="text-sm text-neutral-500 transition hover:text-neutral-200">

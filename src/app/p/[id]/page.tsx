@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getPost, getPostComments } from "@/lib/posts";
 import { deletePost, createComment, deleteComment } from "@/app/actions/posts";
 import { PostCard } from "@/components/post-card";
+import { Avatar } from "@/components/avatar";
 import { timeAgo } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -114,9 +115,8 @@ export default async function PostPage({
           <div className="mt-5 flex flex-col gap-4">
             {comments.map((c) => (
               <div key={c.id} className="flex gap-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-amber-300/30 to-amber-500/10 text-xs font-semibold text-amber-200">
-                  {(c.user.name || c.user.handle).trim().charAt(0).toUpperCase()}
-                </div>
+                <Avatar name={c.user.name} handle={c.user.handle} avatarUrl={c.user.avatarUrl} size="sm" />
+
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline gap-2">
                     <Link
