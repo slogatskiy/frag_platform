@@ -46,6 +46,9 @@ export async function SiteHeader() {
           <Link href="/discover" className="transition hover:text-neutral-100">
             Discover
           </Link>
+          <Link href="/scent-ai" className="transition hover:text-amber-200">
+            Scent AI
+          </Link>
           <Link href="/quiz" className="transition hover:text-neutral-100">
             Quiz
           </Link>
