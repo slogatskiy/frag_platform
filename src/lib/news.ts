@@ -6,6 +6,8 @@ const SOURCES = [
   { name: "Now Smell This", url: "https://nstperfume.com/feed/" },
   { name: "Bois de Jasmin", url: "https://boisdejasmin.com/feed/" },
   { name: "ÇaFleureBon", url: "https://www.cafleurebon.com/feed/" },
+  { name: "Kafkaesque", url: "https://kafkaesqueblog.com/feed/" },
+  { name: "The Perfume Society", url: "https://perfumesociety.org/feed/" },
 ];
 
 const UA =

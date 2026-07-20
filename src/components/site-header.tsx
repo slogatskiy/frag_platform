@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Avatar } from "@/components/avatar";
+import { MobileNav } from "@/components/mobile-nav";
 import { signOut } from "@/app/actions/collection";
 
 export async function SiteHeader() {
@@ -84,31 +85,42 @@ export async function SiteHeader() {
           )}
         </nav>
 
-        {user ? (
-          <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4">
+          {user ? (
+            <>
+              <Link
+                href="/shelf"
+                className="hidden rounded-full bg-neutral-100 px-4 py-2 text-sm font-semibold text-neutral-900 transition hover:bg-white sm:inline-block"
+              >
+                My Shelf
+              </Link>
+              <Link
+                href={`/u/${user.handle}`}
+                title="Your profile"
+                className="hidden transition hover:opacity-80 sm:block"
+              >
+                <Avatar name={user.name} handle={user.handle} avatarUrl={user.avatarUrl} size="sm" />
+              </Link>
+              <form action={signOut} className="hidden sm:block">
+                <button className="text-sm text-neutral-500 transition hover:text-neutral-200">
+                  Sign out
+                </button>
+              </form>
+            </>
+          ) : (
             <Link
-              href="/shelf"
-              className="rounded-full bg-neutral-100 px-4 py-2 text-sm font-semibold text-neutral-900 transition hover:bg-white"
+              href="/login"
+              className="hidden rounded-full bg-neutral-100 px-4 py-2 text-sm font-semibold text-neutral-900 transition hover:bg-white sm:inline-block"
             >
-              My Shelf
+              Sign in
             </Link>
-            <Link href={`/u/${user.handle}`} title="Your profile" className="transition hover:opacity-80">
-              <Avatar name={user.name} handle={user.handle} avatarUrl={user.avatarUrl} size="sm" />
-            </Link>
-            <form action={signOut}>
-              <button className="text-sm text-neutral-500 transition hover:text-neutral-200">
-                Sign out
-              </button>
-            </form>
-          </div>
-        ) : (
-          <Link
-            href="/login"
-            className="rounded-full bg-neutral-100 px-4 py-2 text-sm font-semibold text-neutral-900 transition hover:bg-white"
-          >
-            Sign in
-          </Link>
-        )}
+          )}
+
+          <MobileNav
+            user={user ? { handle: user.handle, name: user.name, avatarUrl: user.avatarUrl } : null}
+            battleTurns={battleTurns}
+          />
+        </div>
       </div>
     </header>
   );

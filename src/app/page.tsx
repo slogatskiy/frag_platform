@@ -2,8 +2,8 @@ import Link from "next/link";
 
 const FEATURES = [
   {
-    title: "Shelf valuation",
-    desc: "Your whole collection as an asset — what it's worth right now, and how it moves over time.",
+    title: "Portfolio dashboard",
+    desc: "Your whole collection as an asset — total value, growth over time, and allocation across houses.",
     icon: "◈",
   },
   {
@@ -12,15 +12,24 @@ const FEATURES = [
     icon: "◎",
   },
   {
-    title: "Price-drop alerts",
-    desc: "A scent on your wishlist dips below your target — you're the first to know.",
+    title: "Collector community",
+    desc: "A social feed of impressions, ratings and daily wears — follow friends and compare shelves.",
     icon: "◔",
   },
   {
     title: "Your shelf, shared",
-    desc: "A beautiful public page for your collection. Share the link, compare with friends.",
+    desc: "A beautiful public page for your collection. Share the link, top the shelf leaderboard.",
     icon: "◐",
   },
+];
+
+const EXTRAS = [
+  "59,000+ fragrances",
+  "Discover by notes",
+  "Scent of the day",
+  "Quiz & battles",
+  "Perfume news",
+  "Real retail prices",
 ];
 
 const PREVIEW_BOTTLES = [
@@ -135,6 +144,17 @@ export default function Home() {
                 {f.desc}
               </p>
             </div>
+          ))}
+        </div>
+
+        <div className="mt-8 flex flex-wrap gap-2">
+          {EXTRAS.map((e) => (
+            <span
+              key={e}
+              className="rounded-full border border-white/10 bg-white/[0.02] px-4 py-2 text-sm text-neutral-400"
+            >
+              {e}
+            </span>
           ))}
         </div>
       </section>

@@ -50,7 +50,7 @@ export default async function NewsPage() {
         )}
 
         <p className="mt-12 text-center text-xs text-neutral-600">
-          Curated from Now Smell This, Bois de Jasmin & ÇaFleureBon.
+          Curated from Now Smell This, Bois de Jasmin, ÇaFleureBon, Kafkaesque & The Perfume Society.
         </p>
       </div>
     </main>
