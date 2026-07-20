@@ -68,6 +68,9 @@ export async function SiteHeader() {
               <Link href="/shelf" className="transition hover:text-neutral-100">
                 My Shelf
               </Link>
+              <Link href="/portfolio" className="transition hover:text-neutral-100">
+                Portfolio
+              </Link>
               <Link href="/wishlist" className="transition hover:text-neutral-100">
                 Wishlist
               </Link>

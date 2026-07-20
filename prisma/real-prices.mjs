@@ -22,21 +22,15 @@ const DATA = [
   // ─────────── НИША: единая или почти единая цена ───────────
   {
     brand: "Louis Vuitton",
-    // LV подняли цены: стандартная линия Les Parfums 100ml = $330 (совпадает с покупкой юзера).
+    // Вся линия Les Parfums 100ml = $330 (подтверждено покупкой юзера: Orage, Pacific Chill и т.д.).
+    // Переопределяем ТОЛЬКО реально более дорогие, в которых уверен.
     brandDefault: { price: 330, vol: 100 },
     items: [
-      // Les Colognes — легче и дешевле
-      { match: "afternoon swim", price: 270 }, { match: "sun song", price: 270 },
-      { match: "cactus garden", price: 270 }, { match: "on the beach", price: 270 },
-      { match: "pacific chill", price: 270 }, { match: "cosmic cloud", price: 500 },
-      // Exceptional / знаковые — дороже
-      { match: "ombre nomade", price: 350 }, { match: "nouveau monde", price: 350 },
-      { match: "nuit de feu", price: 350 }, { match: "les sables roses", price: 350 },
-      { match: "imagination", price: 350 }, { match: "meteore", price: 350 },
-      // Les Extraits — самые дорогие
-      { match: "symphony", price: 500 }, { match: "rhapsody", price: 500 },
-      { match: "dancing blossom", price: 500 }, { match: "myriad", price: 500 },
-      { match: "stellar times", price: 500 }, { match: "attrape reves", price: 350 },
+      { match: "ombre nomade", price: 370 },
+      // Les Extraits de Parfum — премиум-линия ~$490
+      { match: "symphony", price: 490 }, { match: "rhapsody", price: 490 },
+      { match: "dancing blossom", price: 490 }, { match: "myriad", price: 490 },
+      { match: "cosmic cloud", price: 490 }, { match: "stellar times", price: 490 },
     ],
   },
   {
@@ -352,8 +346,9 @@ async function run() {
       const { price, vol } = house.brandDefault;
       for (const f of frs) {
         const k = norm(f.name, house.brand);
-        if (explicit.has(k)) continue; // уже задано явно
-        if (!f.priceEstimated) continue; // реальную цену не трогаем
+        if (explicit.has(k)) continue; // уже задано явно выше
+        // brandDefault авторитетен для этого бренда — перезаписываем и оценку,
+        // и ранее ошибочно проставленную «реальную» цену.
         totalMatched++;
         if (!DRY) {
           await prisma.fragrance.update({
